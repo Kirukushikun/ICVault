@@ -12,13 +12,14 @@
 
         @livewireStyles
     </head>
-    <body class="min-h-screen flex text-white">
-        <div class="w-[220px] shrink-0 bg-bg-secondary border-r border-border flex flex-col p-[26px_16px] gap-7 sticky top-0 h-screen">
+    <body class="min-h-screen flex max-[820px]:flex-col text-white">
+        <div class="w-[220px] shrink-0 bg-bg-secondary border-r border-border flex flex-col p-[26px_16px] gap-7 sticky top-0 h-screen
+                    max-[820px]:w-full max-[820px]:h-auto max-[820px]:flex-row max-[820px]:items-center max-[820px]:static max-[820px]:overflow-x-auto">
             <div class="flex flex-col gap-0.5 px-2">
                 <div class="font-display text-xl font-bold tracking-wide">IC<span class="text-red">Vault</span></div>
                 <div class="text-[9.5px] tracking-[0.14em] uppercase text-text-muted">Knowledge Quiz</div>
             </div>
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1 max-[820px]:flex-row">
                 <a href="{{ route('dashboard') }}" wire:navigate class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <span class="w-4 text-center opacity-90">◆</span> Dashboard
                 </a>
@@ -35,12 +36,12 @@
                     <span class="w-4 text-center opacity-90">⚙</span> Settings
                 </a>
             </div>
-            <div class="mt-auto pt-3 px-2 border-t border-border text-[10px] text-white/20 tracking-[0.08em]">
+            <div class="mt-auto pt-3 px-2 border-t border-border text-[10px] text-white/20 tracking-[0.08em] max-[820px]:hidden">
                 ICVault
             </div>
         </div>
 
-        <div class="flex-1 max-w-[980px] mx-auto w-full px-12 py-10 pb-16">
+        <div class="flex-1 max-w-[980px] mx-auto w-full px-12 py-10 pb-16 max-[820px]:px-5 max-[820px]:py-7 max-[820px]:pb-[50px]">
             {{ $slot }}
         </div>
 
