@@ -26,10 +26,16 @@ the per-phase build order that follows this.
       browser available in this environment to screenshot, see note below)
 
 ## Step 1 — Shared components
-- [ ] `card` styling as a Blade component or Tailwind utility class group
-- [ ] Stat card, section label, difficulty badge, generated/library list item (`.generated-item`)
-- [ ] Toast (bottom-center, "nothing persisted" style) as an Alpine-driven shared partial
-- [ ] Verify: a throwaway usage of each renders identically to the mockup
+- [x] `card` styling as a Tailwind utility class group (`.card`, in `app.css` `@layer components`)
+- [x] Stat card (`<x-stat-card>`), section label (`<x-section-label>`), difficulty badge
+      (`<x-difficulty-badge>`), generated/library list item (`<x-generated-item>`)
+- [x] Toast (`<x-toast>`, bottom-center) — Alpine-driven, listens for a global
+      `toast` window event (`$dispatch('toast', {message: '...'})` or
+      `window.dispatchEvent(new CustomEvent('toast', {detail:{message:'...'}}))`),
+      mounted once in the shared layout
+- [x] Verify: rendered each via a throwaway view + `artisan tinker`, output matched
+      expected markup/classes; confirmed toast partial doesn't break any of the 5 routes
+      (all still 200, no Vite errors)
 
 ## Step 2 — Dashboard (`/`)
 - [ ] Stat row (streak, pool size, avg recall) — hardcoded

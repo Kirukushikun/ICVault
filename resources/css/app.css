@@ -21,6 +21,10 @@
 }
 
 @layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
     body {
         background-color: var(--color-bg);
         background-image:

@@ -44,6 +44,8 @@
             {{ $slot }}
         </div>
 
+        <x-toast />
+
         @livewireScripts
     </body>
 </html>
