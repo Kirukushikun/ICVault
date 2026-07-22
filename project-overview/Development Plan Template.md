@@ -126,6 +126,7 @@ Question      1─* Tip             (a "Did You Know" can be spun off a question
 | Import & Logs → "Session Log" tab *(mockup only — becomes its own route)* | `/import/logs` | `Livewire\Import\SessionLogInput` |
 | Import & Logs → pipeline status + generated preview | shared partial on both `/import/*` routes | `Livewire\Import\PipelineStatus` |
 | Library | `/library` | `Livewire\Library\QuestionBrowser` |
+| Settings *(added to mockup after this table was written — real page, not a mockup-only tab)* | `/settings` | `Livewire\Settings\SettingsPage` |
 
 ---
 
