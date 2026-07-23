@@ -11,8 +11,16 @@
 > `auth`/`guest` middleware on all routes, logout, 6 passing feature tests
 > (`tests/Feature/AuthTest.php`). Phase 1 (categories) is done: migration
 > (id/name/slug/color), `Category` model + factory, `CategorySeeder` mirroring the
-> mockup's 5 sample categories, 3 passing feature tests. 10/10 tests passing overall.
-> Next: Phase 2 (questions/attempts migrations + `MasteryService` state machine).
+> mockup's 5 sample categories, 3 passing feature tests. Phase 2 is done: `Difficulty`/
+> `QuestionType`/`MasteryState` enums, `questions`/`attempts` migrations, plus a bare
+> `quiz_sessions` migration pulled forward from Phase 3 to satisfy the FK order (its
+> Livewire wiring/quota logic is still Phase 3) — `questions.import_batch_id` is a
+> nullable column with no FK constraint yet, since `import_batches` doesn't exist until
+> Phase 4. `MasteryService` implements the full `new → learning → review → mastered`
+> state machine (streak thresholds 1/2/3) with a one-step regression rule on a wrong
+> answer, covered by 9 tests — one per state × correct/incorrect branch. 19/19 tests
+> passing overall. Next: Phase 3 (Quiz Session module — real `quiz_sessions` quota
+> logic, wiring the mockup's mode-selection/question-type components to real data).
 
 ---
 
