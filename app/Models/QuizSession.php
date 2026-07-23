@@ -26,4 +26,17 @@ class QuizSession extends Model
     {
         return $this->hasMany(Attempt::class);
     }
+
+    /**
+     * The single session for today, creating it with the default quota if it
+     * doesn't exist yet — mirrors the mockup's "4 / 8 answered" quota card.
+     */
+    public static function today(int $defaultQuota = 8): self
+    {
+        // Not firstOrCreate(['date' => ...]) — the `date` cast persists a full
+        // `Y-m-d H:i:s` timestamp, so an exact-string match never hits and a new
+        // row gets created on every call. whereDate() truncates on both sides.
+        return static::whereDate('date', today())->first()
+            ?? static::create(['date' => today(), 'quota' => $defaultQuota, 'completed_count' => 0]);
+    }
 }

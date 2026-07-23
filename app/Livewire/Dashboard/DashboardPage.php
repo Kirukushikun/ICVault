@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Models\QuizSession;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -10,6 +11,11 @@ class DashboardPage extends Component
 {
     public function render()
     {
-        return view('livewire.dashboard.dashboard-page');
+        $session = QuizSession::today();
+
+        return view('livewire.dashboard.dashboard-page', [
+            'quota' => $session->quota,
+            'completedCount' => min($session->completed_count, $session->quota),
+        ]);
     }
 }

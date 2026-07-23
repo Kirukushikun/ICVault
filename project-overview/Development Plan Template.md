@@ -19,8 +19,24 @@
 > Phase 4. `MasteryService` implements the full `new → learning → review → mastered`
 > state machine (streak thresholds 1/2/3) with a one-step regression rule on a wrong
 > answer, covered by 9 tests — one per state × correct/incorrect branch. 19/19 tests
-> passing overall. Next: Phase 3 (Quiz Session module — real `quiz_sessions` quota
-> logic, wiring the mockup's mode-selection/question-type components to real data).
+> passing overall. Phase 3 is done: added a nullable `questions.explanation` column
+> (needed for the answer-reveal text; not in the original §3 schema list — a minimal,
+> clearly-needed addition). Added `QuestionSeeder` mirroring the mockup's 6 sample quiz
+> questions, tied to real categories. `QuizSession` Livewire component rewritten from
+> Alpine-only/hardcoded to fully server-driven: mode selection queries real `Question`
+> rows by type, submit logs a real `Attempt` and calls `MasteryService` for
+> multiple-choice/fill-blank types. **Design call:** code-type questions are self-graded
+> (reference-answer reveal only, matching the mockup's neutral treatment) — no
+> Attempt/mastery change, though they still count toward the session's
+> `completed_count`. `QuizSession::today()` provides the daily-quota row (also now
+> wired into Dashboard's quota card); note it uses `whereDate()` rather than
+> `firstOrCreate(['date' => ...])`, since the `date` cast persists a full
+> `Y-m-d H:i:s` timestamp and an exact-string match would create a new row on every
+> call (caught by a failing test, now fixed). Dashboard's stat row (streak/pool/avg
+> recall) and category-mastery grid remain hardcoded — out of scope for this phase.
+> 9 new tests for the quiz flow. 28/28 tests passing overall. Next: Phase 4 (Import
+> pipeline module — `import_batches` migration + `ImportStatus` enum +
+> `ImportPipelineService` + AI parsing).
 
 ---
 

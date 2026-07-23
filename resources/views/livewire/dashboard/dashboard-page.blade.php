@@ -16,10 +16,10 @@
     <div class="card p-[22px_24px] mb-5">
         <div class="flex justify-between items-center mb-3.5">
             <div class="text-[13px] font-semibold">Today's Quota</div>
-            <div class="text-xs text-text-muted"><strong class="text-white">4</strong> / 8 answered</div>
+            <div class="text-xs text-text-muted"><strong class="text-white">{{ $completedCount }}</strong> / {{ $quota }} answered</div>
         </div>
         <div class="w-full h-2 rounded-full bg-white/6 overflow-hidden">
-            <div class="h-full rounded-full" style="width:50%; background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))"></div>
+            <div class="h-full rounded-full" style="width:{{ $quota ? min(100, $completedCount / $quota * 100) : 0 }}%; background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))"></div>
         </div>
         <a href="{{ route('quiz') }}" wire:navigate class="mt-[18px] inline-flex items-center gap-2 text-white px-[22px] py-2.5 rounded-[10px] text-xs font-semibold tracking-[0.06em] uppercase transition-transform hover:-translate-y-0.5" style="background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))">
             Continue Session →

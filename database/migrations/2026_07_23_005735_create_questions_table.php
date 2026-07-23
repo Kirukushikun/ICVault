@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('prompt');
             $table->json('options_json')->nullable();
             $table->text('answer');
+            $table->text('explanation')->nullable();
             $table->string('mastery_state')->default('new');
             $table->unsignedInteger('mastery_streak')->default(0);
             $table->timestamp('last_reviewed_at')->nullable();

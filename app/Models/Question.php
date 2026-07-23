@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'prompt',
     'options_json',
     'answer',
+    'explanation',
     'mastery_state',
     'mastery_streak',
     'last_reviewed_at',
