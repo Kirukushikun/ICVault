@@ -9,7 +9,10 @@
 > real browser (no headless-browser tooling in the dev environment). Stage 3 Phase 0
 > (auth) is done: single seeded user (`admin_it@bfcgroup.org`), Livewire login page,
 > `auth`/`guest` middleware on all routes, logout, 6 passing feature tests
-> (`tests/Feature/AuthTest.php`). Next: Phase 1 (categories migration + seeder).
+> (`tests/Feature/AuthTest.php`). Phase 1 (categories) is done: migration
+> (id/name/slug/color), `Category` model + factory, `CategorySeeder` mirroring the
+> mockup's 5 sample categories, 3 passing feature tests. 10/10 tests passing overall.
+> Next: Phase 2 (questions/attempts migrations + `MasteryService` state machine).
 
 ---
 

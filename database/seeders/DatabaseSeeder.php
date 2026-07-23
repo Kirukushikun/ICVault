@@ -22,5 +22,7 @@ class DatabaseSeeder extends Seeder
                 'password' => env('SEED_USER_PASSWORD', 'password'),
             ],
         );
+
+        $this->call(CategorySeeder::class);
     }
 }
