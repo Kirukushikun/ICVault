@@ -3,11 +3,13 @@
 **Stack baseline:** Laravel 13 · Livewire + Alpine.js · SQLite (dev/prod, single-user scale) · Vite
 **References:** `system-overview.md` (behavior spec, to be written) · `ic-vault/index.html` (UI contract — the four sidebar views are the real routes; import sub-tabs are `<!-- mockup only -->` and split into their own routes)
 
-> **Status update:** Stage 1 mockup is done (`ic-vault/index.html` — Dashboard, Quiz Session,
-> Import & Logs, Library, styled to the portfolio design tokens). No UI-scaffold (Stage 2) pass
-> has been done yet — §5 below starts from Phase 0 assuming scaffold happens as part of Phase 0–1,
-> not as a separate pre-pass, since this is a single-developer personal tool and the mockup is
-> small enough to port directly into Blade/Livewire components per phase rather than all at once.
+> **Status update (2026-07-23):** Stage 1 mockup done. Stage 2 UI scaffold done in full
+> (see `ui-scaffold-checklist.md`, Steps 0–7 all checked) — five routes, Livewire shell,
+> Alpine-driven interactivity, hardcoded sample data throughout, not yet verified in a
+> real browser (no headless-browser tooling in the dev environment). Stage 3 Phase 0
+> (auth) is done: single seeded user (`admin_it@bfcgroup.org`), Livewire login page,
+> `auth`/`guest` middleware on all routes, logout, 6 passing feature tests
+> (`tests/Feature/AuthTest.php`). Next: Phase 1 (categories migration + seeder).
 
 ---
 

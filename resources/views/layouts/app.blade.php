@@ -36,8 +36,12 @@
                     <span class="w-4 text-center opacity-90">⚙</span> Settings
                 </a>
             </div>
-            <div class="mt-auto pt-3 px-2 border-t border-border text-[10px] text-white/20 tracking-[0.08em] max-[820px]:hidden">
-                ICVault
+            <div class="mt-auto pt-3 px-2 border-t border-border max-[820px]:hidden">
+                <div class="text-[10px] text-white/20 tracking-[0.08em] mb-2">ICVault</div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="text-[10px] text-text-muted hover:text-white tracking-[0.08em] uppercase">Log Out</button>
+                </form>
             </div>
         </div>
 
