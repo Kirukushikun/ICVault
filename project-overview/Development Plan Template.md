@@ -34,9 +34,34 @@
 > `Y-m-d H:i:s` timestamp and an exact-string match would create a new row on every
 > call (caught by a failing test, now fixed). Dashboard's stat row (streak/pool/avg
 > recall) and category-mastery grid remain hardcoded — out of scope for this phase.
-> 9 new tests for the quiz flow. 28/28 tests passing overall. Next: Phase 4 (Import
-> pipeline module — `import_batches` migration + `ImportStatus` enum +
-> `ImportPipelineService` + AI parsing).
+> 9 new tests for the quiz flow. 28/28 tests passing overall. Phase 4 is done: added
+> `import_batches` migration (`source_type`, `category_id` nullable FK, `raw_content`,
+> `status`, `error_message` — the latter two are additions beyond the original §3 list,
+> needed for job-failure reporting; `category_id` lives on the batch rather than being
+> re-picked per question since one submission is parsed as one unit) plus a follow-up
+> migration adding the deferred `questions.import_batch_id` foreign key, exactly as
+> flagged in the Phase 2 note. `ImportStatus` enum (`uploaded → parsed → ai_converted →
+> queued → imported`, plus a `failed` exit state — another deviation, added because a
+> queued job needs somewhere to land on error). **Design call (per your explicit
+> choice):** the AI parsing step is a stubbed `NaiveLineParser` (splits raw text into
+> lines, blanks the last word of each to make a fill-blank question) behind a
+> `QuestionParserContract` interface bound in `AppServiceProvider` — swapping in a real
+> AI provider later is a one-line binding change, no pipeline/job rewrite needed.
+> `ImportPipelineService` enforces the status transition table (guards against skipping
+> or re-entering a terminal state) and turns parser candidates into real `Question`
+> rows. `ParseImportBatch` is a queued job (`sync` in tests per `phpunit.xml`,
+> `database` driver in `.env` — a worker must be running for real async processing, not
+> yet part of this build). The `ImportPage` Livewire component keeps the Stage 2
+> scaffold's single-route, Alpine-tab-switching layout (still one `/import` route, not
+> the two-route `/import/notes` + `/import/logs` split in §4 — matching the
+> already-established scaffold deviation, not a new one) but now does a real category
+> select, `.md` file upload (`WithFileUploads`, stored under `storage/app/private/imports`
+> since Laravel 11+'s default local disk root moved from the plan's `storage/app/imports`),
+> or session-log textarea, dispatches the job on submit, and renders live pipeline-stage
+> badges plus the actual generated `Question` rows in the "Generated This Session" list.
+> 10 new tests (pipeline transitions, job success/failure, Livewire upload/paste/
+> validation flows). 38/38 tests passing overall. Next: Phase 5 (Did You Know layer —
+> `tips` migration, surfaced on Dashboard).
 
 ---
 
