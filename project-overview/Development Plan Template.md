@@ -73,7 +73,22 @@
 > shows one at random per category, duplicate tips across repeated imports aren't a
 > problem worth guarding against. 4 new tests (Dashboard tip-selection fallback/
 > preference/empty-state, import-spun tip creation). 42/42 tests passing overall.
-> Next: Phase 6 (Library module — browse/search/filter, direct question edit/delete).
+> Phase 6 is done: `QuestionBrowser` rewritten from Alpine-only/hardcoded to real
+> queries — a debounced prompt search, a category `<select>`, and the existing
+> difficulty tabs (counts now computed per filter scope, not hardcoded) all combine
+> via the same base query. Editing is inline-per-row rather than a modal (no modal
+> pattern existed anywhere else in the app yet, and a full-page component swap seemed
+> heavier than warranted for what the plan scopes as "corrections"): prompt, answer,
+> explanation, difficulty, and category are editable, plus a line-per-option textarea
+> for `multiple_choice` questions specifically. **Design call:** `type` itself isn't
+> editable, since changing it would silently invalidate the existing `answer`/
+> `options_json` shape — out of scope for a correction tool. Delete uses Livewire's
+> `wire:confirm` for a native confirmation prompt rather than a custom dialog (no
+> modal/dialog component exists yet to reuse) and relies on the `attempts` table's
+> existing `cascadeOnDelete()` FK to clean up attempt history. 7 new tests (listing +
+> tab counts, search filter, difficulty filter, category filter, update, validation,
+> delete). 49/49 tests passing overall.
+> Next: Phase 7 (Documents & export — JSON pool export/import, doubles as backup).
 
 ---
 
