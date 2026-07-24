@@ -159,17 +159,17 @@
                 <div class="w-7 text-center text-base opacity-75">💾</div>
                 <div class="flex-1">
                     <div class="text-[13.5px] font-medium">Export Vault</div>
-                    <div class="text-[11px] text-text-muted">Download your question pool, mastery data, and session history — last backup <span class="text-[#4fcf95]">3 days ago</span></div>
+                    <div class="text-[11px] text-text-muted">Download your question pool as JSON — doubles as a portable backup</div>
                 </div>
             </div>
             <div class="flex gap-2.5 flex-wrap ml-11 mb-4">
-                <span class="text-[11px] text-text-muted"><strong class="text-white font-semibold">184</strong> questions</span>
-                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">5</strong> categories</span>
-                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">12</strong> sessions</span>
-                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">78%</strong> avg recall</span>
+                <span class="text-[11px] text-text-muted"><strong class="text-white font-semibold">{{ $questionCount }}</strong> questions</span>
+                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">{{ $categoryCount }}</strong> categories</span>
+                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">{{ $sessionCount }}</strong> sessions</span>
+                <span class="text-[11px] text-text-muted before:content-['·'] before:opacity-30 before:mr-1.5"><strong class="text-white font-semibold">{{ $avgRecall }}%</strong> avg recall</span>
             </div>
             <div class="flex gap-2.5 flex-wrap ml-11">
-                <button @click="toast('Exported as JSON')" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-cyan-400/35 hover:bg-cyan-400/5 hover:text-white transition-colors">
+                <button wire:click="exportJson" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-cyan-400/35 hover:bg-cyan-400/5 hover:text-white transition-colors">
                     <span class="text-[9px] font-bold tracking-[0.1em] px-1.5 py-0.5 rounded bg-cyan-400/14 text-cyan-400">JSON</span> Full Backup
                 </button>
                 <button @click="toast('Exported as CSV')" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-green/35 hover:bg-green/5 hover:text-white transition-colors">
@@ -191,44 +191,44 @@
             </div>
 
             <label class="flex flex-col items-center gap-1 w-full mt-1 border-[1.5px] border-dashed border-white/10 rounded-xl p-[22px_20px] text-center cursor-pointer relative hover:border-red/35 hover:bg-red/3 transition-colors">
-                <input type="file" accept=".json,.csv,.md" @change="setImportFile($event.target.files[0])" class="absolute inset-0 opacity-0 cursor-pointer" />
+                <input type="file" accept=".json" wire:model="importFile" class="absolute inset-0 opacity-0 cursor-pointer" />
                 <div class="text-[13px] font-medium">Drop a backup file or click to browse</div>
-                <div class="text-[11px] text-text-muted">Accepts .json · .csv · .md</div>
+                <div class="text-[11px] text-text-muted">Accepts .json (full vault export)</div>
                 <div class="flex justify-center gap-1.5 mt-2.5">
                     <span class="text-[9.5px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-full bg-cyan-400/14 text-cyan-400">.json</span>
-                    <span class="text-[9.5px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-full bg-green/14 text-[#4fcf95]">.csv</span>
-                    <span class="text-[9.5px] font-bold tracking-[0.1em] px-2.5 py-1 rounded-full bg-red/14 text-[#ec5c86]">.md</span>
                 </div>
             </label>
+            @error('importFile') <div class="text-[11px] text-[#ec5c86] mt-2 ml-11">{{ $message }}</div> @enderror
 
-            <div x-show="importFile" class="flex items-center gap-2.5 mt-2.5 ml-11 px-3.5 py-2 rounded-lg bg-red/6 border border-red/20 text-xs w-fit">
-                <span>📄</span>
-                <span class="font-medium" x-text="importFile?.name"></span>
-                <span class="text-text-muted" x-text="importFile?.sizeLabel"></span>
-                <button @click="importFile = null" class="text-text-muted hover:text-[#ec5c86] ml-1">✕</button>
-            </div>
+            @if ($importFile)
+                <div class="flex items-center gap-2.5 mt-2.5 ml-11 px-3.5 py-2 rounded-lg bg-red/6 border border-red/20 text-xs w-fit">
+                    <span>📄</span>
+                    <span class="font-medium">{{ $importFile->getClientOriginalName() }}</span>
+                    <button wire:click="$set('importFile', null)" class="text-text-muted hover:text-[#ec5c86] ml-1">✕</button>
+                </div>
+            @endif
 
             <div class="flex items-center gap-4 mt-3.5">
                 <span class="text-[11px] text-text-muted">On conflict:</span>
                 <div class="flex gap-3.5">
-                    <label class="flex items-center gap-1.5 text-xs cursor-pointer" :class="importMode === 'merge' ? 'text-white' : 'text-text-muted'">
-                        <input type="radio" x-model="importMode" value="merge" class="hidden" />
-                        <span class="w-[13px] h-[13px] rounded-full border-[1.5px] flex items-center justify-center" :class="importMode === 'merge' ? 'border-red' : 'border-white/20'">
-                            <span x-show="importMode === 'merge'" class="w-[5px] h-[5px] rounded-full bg-red"></span>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer" :class="$wire.importMode === 'merge' ? 'text-white' : 'text-text-muted'">
+                        <input type="radio" wire:model="importMode" value="merge" class="hidden" />
+                        <span class="w-[13px] h-[13px] rounded-full border-[1.5px] flex items-center justify-center" :class="$wire.importMode === 'merge' ? 'border-red' : 'border-white/20'">
+                            <span x-show="$wire.importMode === 'merge'" class="w-[5px] h-[5px] rounded-full bg-red"></span>
                         </span>
                         Merge
                     </label>
-                    <label class="flex items-center gap-1.5 text-xs cursor-pointer" :class="importMode === 'replace' ? 'text-white' : 'text-text-muted'">
-                        <input type="radio" x-model="importMode" value="replace" class="hidden" />
-                        <span class="w-[13px] h-[13px] rounded-full border-[1.5px] flex items-center justify-center" :class="importMode === 'replace' ? 'border-red' : 'border-white/20'">
-                            <span x-show="importMode === 'replace'" class="w-[5px] h-[5px] rounded-full bg-red"></span>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer" :class="$wire.importMode === 'replace' ? 'text-white' : 'text-text-muted'">
+                        <input type="radio" wire:model="importMode" value="replace" class="hidden" />
+                        <span class="w-[13px] h-[13px] rounded-full border-[1.5px] flex items-center justify-center" :class="$wire.importMode === 'replace' ? 'border-red' : 'border-white/20'">
+                            <span x-show="$wire.importMode === 'replace'" class="w-[5px] h-[5px] rounded-full bg-red"></span>
                         </span>
                         Replace All
                     </label>
                 </div>
-                <button @click="runImport()" :disabled="!importFile"
+                <button wire:click="runImport" :disabled="!$wire.importFile"
                         class="ml-auto shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4.5 py-2 rounded-lg border-[1.5px] transition-all"
-                        :class="importFile ? 'text-white border-red/55 bg-red/18 hover:bg-red/28 hover:border-red/75 cursor-pointer' : 'text-white/30 border-white/8 bg-white/3 pointer-events-none'">
+                        :class="$wire.importFile ? 'text-white border-red/55 bg-red/18 hover:bg-red/28 hover:border-red/75 cursor-pointer' : 'text-white/30 border-white/8 bg-white/3 pointer-events-none'">
                     Import
                 </button>
             </div>
@@ -280,8 +280,6 @@
         streakReminder: true,
         weeklySummary: true,
         newQuestionsNotif: false,
-        importFile: null,
-        importMode: 'merge',
         toggleEdit() {
             this.isEditing = !this.isEditing;
         },
@@ -294,17 +292,6 @@
         saveCredentials() {
             this.isEditing = false;
             this.toast('Credentials saved');
-        },
-        setImportFile(file) {
-            if (!file) return;
-            const sizeLabel = file.size < 1024 ? `${file.size} B` : file.size < 1048576 ? `${(file.size / 1024).toFixed(1)} KB` : `${(file.size / 1048576).toFixed(1)} MB`;
-            this.importFile = { name: file.name, sizeLabel };
-        },
-        runImport() {
-            if (!this.importFile) return;
-            const message = this.importMode === 'merge' ? 'Questions merged into vault' : 'Vault replaced with import';
-            this.importFile = null;
-            this.toast(message);
         },
         toast(message) {
             window.dispatchEvent(new CustomEvent('toast', { detail: { message: `✓ ${message}` } }));

@@ -88,7 +88,27 @@
 > existing `cascadeOnDelete()` FK to clean up attempt history. 7 new tests (listing +
 > tab counts, search filter, difficulty filter, category filter, update, validation,
 > delete). 49/49 tests passing overall.
-> Next: Phase 7 (Documents & export — JSON pool export/import, doubles as backup).
+> Phase 7 is done: only Settings' "Backup & Restore" panel was touched — Account, Quiz
+> Preferences, Notifications, and Danger Zone stay Alpine-only stubs, since they aren't
+> in the Build Order (Danger Zone belongs to Phase 8) and notifications are explicitly
+> out of scope for v1 (§1). `SettingsPage` gained `WithFileUploads` plus real pool
+> stats (question/category/session counts, avg recall from `Attempts`) replacing the
+> hardcoded "184 questions" row — left as fake numbers next to a real export button
+> would have made the export visibly wrong on first use. `exportJson()` streams a
+> timestamped `.json` download of every `Question` (with its category's slug/name/
+> color inlined for portability). `runImport()` reads an uploaded `.json`, validates
+> it has a `questions` array, and per row either **merges** (skips exact prompt+category
+> duplicates) or, in **replace** mode, deletes all existing questions first inside a
+> single DB transaction. **Design call:** a row with no `category_slug` is skipped
+> rather than imported uncategorized, since `questions.category_id` is a NOT NULL FK —
+> caught by a first test run that hit a real constraint violation. Categories are
+> resolved by slug via `firstOrCreate`, so importing into a fresh install recreates
+> any categories the export needs. The mockup's CSV and Obsidian-`.md` export buttons
+> stay cosmetic toast stubs — plan §5 Phase 7 scopes this to JSON only. 6 new tests
+> (pool stats, export response, merge import, merge-dedupes, replace-all, invalid-file
+> rejection). 55/55 tests passing overall.
+> Next: Phase 8 (Maintenance — scheduled `spatie/laravel-backup` dump, `ResetQuestionPool`
+> danger-zone job with preview → type-to-confirm → execute).
 
 ---
 
