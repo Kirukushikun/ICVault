@@ -60,8 +60,20 @@
 > or session-log textarea, dispatches the job on submit, and renders live pipeline-stage
 > badges plus the actual generated `Question` rows in the "Generated This Session" list.
 > 10 new tests (pipeline transitions, job success/failure, Livewire upload/paste/
-> validation flows). 38/38 tests passing overall. Next: Phase 5 (Did You Know layer —
-> `tips` migration, surfaced on Dashboard).
+> validation flows). 38/38 tests passing overall. Phase 5 is done: `tips` migration
+> (`category_id` nullable FK, `body`, `source_question_id` nullable FK to `questions`),
+> `Tip` model, `TipSeeder` (seeds the mockup's original dispatch()/dispatchSync() card
+> as the Laravel tip, plus one tip per other seeded category so Dashboard always has
+> something to show). Dashboard's Did-You-Know card now pulls a real `Tip`: it prefers
+> one from a category touched by today's `QuizSession` (via its `Attempts` →
+> `Question` → `category_id`), falling back to any random tip before the day's first
+> answer, and hiding the card entirely if no tips exist at all. **Design call:**
+> `ImportPipelineService::importQuestions()` now spins a `Tip` off every generated
+> question that has an `explanation` — cheap to create, and since Dashboard only ever
+> shows one at random per category, duplicate tips across repeated imports aren't a
+> problem worth guarding against. 4 new tests (Dashboard tip-selection fallback/
+> preference/empty-state, import-spun tip creation). 42/42 tests passing overall.
+> Next: Phase 6 (Library module — browse/search/filter, direct question edit/delete).
 
 ---
 

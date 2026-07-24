@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\ImportStatus;
 use App\Models\ImportBatch;
 use App\Models\Question;
+use App\Models\Tip;
 use Illuminate\Support\Collection;
 use RuntimeException;
 
@@ -47,14 +48,38 @@ class ImportPipelineService
      */
     public function importQuestions(ImportBatch $batch, array $candidates): Collection
     {
-        $questions = collect($candidates)->map(fn (array $candidate) => Question::create([
-            ...$candidate,
-            'category_id' => $batch->category_id,
-            'import_batch_id' => $batch->id,
-        ]));
+        $questions = collect($candidates)->map(function (array $candidate) use ($batch) {
+            $question = Question::create([
+                ...$candidate,
+                'category_id' => $batch->category_id,
+                'import_batch_id' => $batch->id,
+            ]);
+
+            $this->spinTip($question);
+
+            return $question;
+        });
 
         $this->transitionTo($batch, ImportStatus::Imported);
 
         return $questions;
+    }
+
+    /**
+     * Every generated question with an explanation doubles as a Did-You-Know
+     * candidate — cheap to create, and Dashboard only ever surfaces one at
+     * random per category, so duplicates across imports aren't a problem.
+     */
+    private function spinTip(Question $question): void
+    {
+        if (! $question->explanation) {
+            return;
+        }
+
+        Tip::create([
+            'category_id' => $question->category_id,
+            'body' => $question->explanation,
+            'source_question_id' => $question->id,
+        ]);
     }
 }

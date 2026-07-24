@@ -26,15 +26,17 @@
         </a>
     </div>
 
-    <div class="card p-[18px_22px] mb-5 flex gap-3.5 items-start" style="border-color:rgba(195,7,63,0.25); background:linear-gradient(135deg,rgba(195,7,63,0.08),var(--color-card-bg) 60%)">
-        <div class="text-xl leading-none">💡</div>
-        <div>
-            <div class="text-[9.5px] font-bold tracking-[0.18em] uppercase text-red mb-1">Did You Know</div>
-            <div class="text-[13px] leading-[1.5] text-white/85 [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:bg-white/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded">
-                In Laravel, <code>dispatch()</code> queues a job and returns immediately — <code>dispatchSync()</code> runs it inline and waits for it to finish before continuing.
+    @if ($tip)
+        <div class="card p-[18px_22px] mb-5 flex gap-3.5 items-start" style="border-color:rgba(195,7,63,0.25); background:linear-gradient(135deg,rgba(195,7,63,0.08),var(--color-card-bg) 60%)">
+            <div class="text-xl leading-none">💡</div>
+            <div>
+                <div class="text-[9.5px] font-bold tracking-[0.18em] uppercase text-red mb-1">Did You Know</div>
+                <div class="text-[13px] leading-[1.5] text-white/85 [&_code]:font-mono [&_code]:text-[11.5px] [&_code]:bg-white/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded">
+                    {!! $tip->body !!}
+                </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <x-section-label>Categories</x-section-label>
     <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">

@@ -79,4 +79,36 @@ class ImportPipelineServiceTest extends TestCase
         ]);
         $this->assertSame(ImportStatus::Imported, $batch->fresh()->status);
     }
+
+    public function test_import_questions_spins_a_tip_off_each_question_with_an_explanation(): void
+    {
+        $category = Category::factory()->create();
+        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Queued, 'category_id' => $category->id]);
+
+        $questions = $this->service->importQuestions($batch, [
+            [
+                'difficulty' => 'medium',
+                'type' => 'fill_blank',
+                'prompt' => 'Fill in the blank: dispatch() queues a ____',
+                'options_json' => null,
+                'answer' => 'job',
+                'explanation' => 'dispatch() queues a job',
+            ],
+            [
+                'difficulty' => 'medium',
+                'type' => 'fill_blank',
+                'prompt' => 'No explanation here',
+                'options_json' => null,
+                'answer' => 'nothing',
+                'explanation' => null,
+            ],
+        ]);
+
+        $this->assertDatabaseHas('tips', [
+            'category_id' => $category->id,
+            'body' => 'dispatch() queues a job',
+            'source_question_id' => $questions->first()->id,
+        ]);
+        $this->assertSame(1, \App\Models\Tip::count());
+    }
 }
