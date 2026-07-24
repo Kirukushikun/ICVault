@@ -107,8 +107,29 @@
 > stay cosmetic toast stubs — plan §5 Phase 7 scopes this to JSON only. 6 new tests
 > (pool stats, export response, merge import, merge-dedupes, replace-all, invalid-file
 > rejection). 55/55 tests passing overall.
-> Next: Phase 8 (Maintenance — scheduled `spatie/laravel-backup` dump, `ResetQuestionPool`
-> danger-zone job with preview → type-to-confirm → execute).
+> Phase 8 is done: installed `spatie/laravel-backup`. Extracted the JSON-shaping logic
+> from `SettingsPage::exportJson()` into `PoolExportService` (used by both the UI export
+> button and the new scheduled command, rather than duplicating the mapping). A new
+> `vault:backup` artisan command writes a fresh pool-export JSON to
+> `storage/app/private/backup-exports/pool.json` and then runs `backup:run`, scheduled
+> daily via `routes/console.php`. **Design call:** `config/backup.php`'s `files.include`
+> was narrowed from the package default (the whole codebase) to just the
+> `backup-exports` folder — the sqlite database itself is already covered by the
+> `databases` source, and zipping `vendor/`, `node_modules/`, etc. into a personal
+> backup made no sense. Two danger-zone jobs, both `ShouldQueue`: `ResetQuestionPool`
+> (deletes every `Question`, cascading their `Attempts`) backs "Delete All Questions";
+> `ResetMasteryProgress` (resets every question's mastery fields to `new`/0/null, then
+> deletes all `Attempts` and `QuizSessions`) backs "Clear Progress Data", matching the
+> mockup's own description of that button. Both routes go through the same UX: a
+> preview count inline on the row, a reveal-on-click type-to-confirm text field
+> (`DELETE` / `RESET` exactly), Confirm/Cancel, then dispatch. **Deviation:** "Reset
+> Streak" stays an Alpine-only stub — no streak field exists anywhere in the schema to
+> reset (Dashboard's streak stat has been hardcoded since Phase 3 and was never in any
+> phase's scope). 7 new tests (both jobs' effects, the backup command writing a real
+> export file, and both confirm flows' reject/accept paths). 62/62 tests passing
+> overall.
+> Next: Phase 9 (Hardening — checklist-driven: policy-based authorization everywhere,
+> no direct-link bypass of Library/Import guards, full test coverage sweep).
 
 ---
 

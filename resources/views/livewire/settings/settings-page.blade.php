@@ -246,19 +246,43 @@
             </div>
             <button @click="toast('Streak reset')" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/30 bg-red/8 text-red/75 hover:border-red/65 hover:bg-red/18 hover:text-[#ec5c86] transition-colors">Reset Streak</button>
         </div>
-        <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="flex-1">
-                <div class="text-[13.5px] font-medium">Clear Progress Data</div>
-                <div class="text-[11px] text-text-muted">Wipe all mastery scores and session history across every category.</div>
+        <div class="flex flex-col gap-0 py-3.5 border-b border-white/5">
+            <div class="flex items-center gap-4">
+                <div class="flex-1">
+                    <div class="text-[13.5px] font-medium">Clear Progress Data</div>
+                    <div class="text-[11px] text-text-muted">Wipe all mastery scores and session history across every category — {{ $attemptCount }} attempt(s) across {{ $sessionCount }} session(s).</div>
+                </div>
+                @if (! $confirmingClear)
+                    <button wire:click="startClearConfirm" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/30 bg-red/8 text-red/75 hover:border-red/65 hover:bg-red/18 hover:text-[#ec5c86] transition-colors">Clear Progress</button>
+                @endif
             </div>
-            <button @click="toast('Progress cleared')" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/30 bg-red/8 text-red/75 hover:border-red/65 hover:bg-red/18 hover:text-[#ec5c86] transition-colors">Clear Progress</button>
+            @if ($confirmingClear)
+                <div class="flex items-center gap-2.5 mt-3">
+                    <input type="text" wire:model="clearConfirmText" placeholder="Type RESET to confirm" class="flex-1 bg-transparent border border-red/30 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red/60" />
+                    <button wire:click="confirmClear" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/55 bg-red/18 text-white hover:bg-red/28">Confirm</button>
+                    <button wire:click="cancelClearConfirm" class="shrink-0 text-[11px] text-text-muted hover:text-white uppercase tracking-[0.06em]">Cancel</button>
+                </div>
+                @error('clearConfirmText') <div class="text-[11px] text-[#ec5c86] mt-1.5">{{ $message }}</div> @enderror
+            @endif
         </div>
-        <div class="flex items-center gap-4 py-3.5">
-            <div class="flex-1">
-                <div class="text-[13.5px] font-medium">Delete All Questions</div>
-                <div class="text-[11px] text-text-muted">Remove every card from the question pool. Your vault will be empty.</div>
+        <div class="flex flex-col gap-0 py-3.5">
+            <div class="flex items-center gap-4">
+                <div class="flex-1">
+                    <div class="text-[13.5px] font-medium">Delete All Questions</div>
+                    <div class="text-[11px] text-text-muted">Remove every card from the question pool — {{ $questionCount }} question(s). Your vault will be empty.</div>
+                </div>
+                @if (! $confirmingDelete)
+                    <button wire:click="startDeleteConfirm" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/45 bg-red/13 text-[#ec5c86] hover:border-red hover:bg-red/28 hover:text-white transition-colors">Delete All</button>
+                @endif
             </div>
-            <button @click="toast('Question pool deleted')" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/45 bg-red/13 text-[#ec5c86] hover:border-red hover:bg-red/28 hover:text-white transition-colors">Delete All</button>
+            @if ($confirmingDelete)
+                <div class="flex items-center gap-2.5 mt-3">
+                    <input type="text" wire:model="deleteConfirmText" placeholder="Type DELETE to confirm" class="flex-1 bg-transparent border border-red/30 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red/60" />
+                    <button wire:click="confirmDelete" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/55 bg-red/18 text-white hover:bg-red/28">Confirm</button>
+                    <button wire:click="cancelDeleteConfirm" class="shrink-0 text-[11px] text-text-muted hover:text-white uppercase tracking-[0.06em]">Cancel</button>
+                </div>
+                @error('deleteConfirmText') <div class="text-[11px] text-[#ec5c86] mt-1.5">{{ $message }}</div> @enderror
+            @endif
         </div>
     </div>
 </div>

@@ -2,10 +2,13 @@
 
 namespace App\Livewire\Settings;
 
+use App\Jobs\ResetMasteryProgress;
+use App\Jobs\ResetQuestionPool;
 use App\Models\Attempt;
 use App\Models\Category;
 use App\Models\Question;
 use App\Models\QuizSession;
+use App\Services\PoolExportService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -20,27 +23,20 @@ class SettingsPage extends Component
 
     public string $importMode = 'merge';
 
+    public bool $confirmingDelete = false;
+
+    public string $deleteConfirmText = '';
+
+    public bool $confirmingClear = false;
+
+    public string $clearConfirmText = '';
+
     public function exportJson()
     {
-        $questions = Question::with('category')->get()->map(fn (Question $question) => [
-            'category_slug' => $question->category?->slug,
-            'category_name' => $question->category?->name,
-            'category_color' => $question->category?->color,
-            'difficulty' => $question->difficulty->value,
-            'type' => $question->type->value,
-            'prompt' => $question->prompt,
-            'options' => $question->options_json,
-            'answer' => $question->answer,
-            'explanation' => $question->explanation,
-        ]);
-
-        $payload = [
-            'exported_at' => now()->toIso8601String(),
-            'questions' => $questions,
-        ];
+        $payload = app(PoolExportService::class)->toJson();
 
         return response()->streamDownload(
-            fn () => print(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)),
+            fn () => print($payload),
             'icvault-export-'.now()->format('Y-m-d_His').'.json',
             ['Content-Type' => 'application/json']
         );
@@ -114,6 +110,58 @@ class SettingsPage extends Component
         $this->dispatch('toast', message: "Imported {$imported} question(s).");
     }
 
+    public function startDeleteConfirm(): void
+    {
+        $this->confirmingDelete = true;
+        $this->deleteConfirmText = '';
+    }
+
+    public function cancelDeleteConfirm(): void
+    {
+        $this->reset(['confirmingDelete', 'deleteConfirmText']);
+    }
+
+    public function confirmDelete(): void
+    {
+        if ($this->deleteConfirmText !== 'DELETE') {
+            $this->addError('deleteConfirmText', 'Type DELETE exactly to confirm.');
+
+            return;
+        }
+
+        ResetQuestionPool::dispatch();
+
+        $this->reset(['confirmingDelete', 'deleteConfirmText']);
+
+        $this->dispatch('toast', message: 'Question pool deleted.');
+    }
+
+    public function startClearConfirm(): void
+    {
+        $this->confirmingClear = true;
+        $this->clearConfirmText = '';
+    }
+
+    public function cancelClearConfirm(): void
+    {
+        $this->reset(['confirmingClear', 'clearConfirmText']);
+    }
+
+    public function confirmClear(): void
+    {
+        if ($this->clearConfirmText !== 'RESET') {
+            $this->addError('clearConfirmText', 'Type RESET exactly to confirm.');
+
+            return;
+        }
+
+        ResetMasteryProgress::dispatch();
+
+        $this->reset(['confirmingClear', 'clearConfirmText']);
+
+        $this->dispatch('toast', message: 'Progress cleared.');
+    }
+
     public function render()
     {
         $totalAttempts = Attempt::count();
@@ -123,6 +171,7 @@ class SettingsPage extends Component
             'questionCount' => Question::count(),
             'categoryCount' => Category::count(),
             'sessionCount' => QuizSession::count(),
+            'attemptCount' => $totalAttempts,
             'avgRecall' => $totalAttempts > 0 ? (int) round($correctAttempts / $totalAttempts * 100) : 0,
         ]);
     }

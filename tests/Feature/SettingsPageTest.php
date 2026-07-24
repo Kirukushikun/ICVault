@@ -146,4 +146,56 @@ class SettingsPageTest extends TestCase
             ->call('runImport')
             ->assertHasErrors(['importFile']);
     }
+
+    public function test_delete_all_requires_exact_confirmation_text(): void
+    {
+        Question::factory()->fillBlank('a')->create();
+
+        Livewire::test(SettingsPage::class)
+            ->call('startDeleteConfirm')
+            ->set('deleteConfirmText', 'delete')
+            ->call('confirmDelete')
+            ->assertHasErrors(['deleteConfirmText']);
+
+        $this->assertSame(1, Question::count());
+    }
+
+    public function test_delete_all_dispatches_the_reset_question_pool_job_once_confirmed(): void
+    {
+        Question::factory()->fillBlank('a')->create();
+
+        Livewire::test(SettingsPage::class)
+            ->call('startDeleteConfirm')
+            ->set('deleteConfirmText', 'DELETE')
+            ->call('confirmDelete')
+            ->assertSet('confirmingDelete', false);
+
+        $this->assertSame(0, Question::count());
+    }
+
+    public function test_clear_progress_requires_exact_confirmation_text(): void
+    {
+        $session = QuizSession::factory()->create();
+
+        Livewire::test(SettingsPage::class)
+            ->call('startClearConfirm')
+            ->set('clearConfirmText', 'reset')
+            ->call('confirmClear')
+            ->assertHasErrors(['clearConfirmText']);
+
+        $this->assertSame(1, QuizSession::count());
+    }
+
+    public function test_clear_progress_dispatches_the_reset_mastery_progress_job_once_confirmed(): void
+    {
+        QuizSession::factory()->create();
+
+        Livewire::test(SettingsPage::class)
+            ->call('startClearConfirm')
+            ->set('clearConfirmText', 'RESET')
+            ->call('confirmClear')
+            ->assertSet('confirmingClear', false);
+
+        $this->assertSame(0, QuizSession::count());
+    }
 }
