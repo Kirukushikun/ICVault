@@ -74,6 +74,25 @@ class VisualizerTest extends TestCase
             ->assertSee('10 Git Commands', false);     // current guide
     }
 
+    /**
+     * The masthead and the index card used to hold separate copies of these
+     * labels, so renumbering a guide meant editing two files and silently
+     * getting it half-right.
+     */
+    public function test_the_guide_masthead_reads_its_labels_from_the_library(): void
+    {
+        $guide = app(GuideLibrary::class)->find('git-commands');
+
+        $this->get(route('visualizer.guide', 'git-commands'))
+            ->assertOk()
+            ->assertSee($guide['eyebrow'], false)
+            ->assertSee($guide['subtitle'], false);
+
+        $this->get(route('visualizer.index'))
+            ->assertOk()
+            ->assertSee($guide['eyebrow'], false);
+    }
+
     public function test_the_guide_uses_the_git_accent_colour(): void
     {
         $this->get(route('visualizer.guide', 'git-commands'))

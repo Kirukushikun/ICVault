@@ -273,7 +273,7 @@ h1 .num{color:var(--amber)}
 .flow .arw{color:var(--amber)}
 
 /* footer */
-footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
+footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px !important;
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;
   color:var(--ink-dim);text-transform:uppercase}
@@ -285,12 +285,15 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>
+@endverbatim
 
+{{-- Markup is plain Blade: it holds no CSS at-rules or JS template syntax, so
+     the masthead can read its labels straight from GuideLibrary. --}}
 <div class="wrap">
 
   <div class="eyebrow">
     <span>&gt;_ coding chops</span>
-    <span class="right">developer field guide 02</span>
+    <span class="right">{{ $guide['eyebrow'] }}</span>
   </div>
 
   <div class="masthead">
@@ -299,7 +302,7 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
     </div>
     <div>
       <h1><span class="num">10</span> GIT COMMANDS</h1>
-      <div class="sub">every developer should know</div>
+      <div class="sub">{{ $guide['subtitle'] }}</div>
     </div>
   </div>
 
@@ -368,6 +371,7 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
 
 </div>
 
+@verbatim
 <script>
 /* ============================================================
    DATA — add a command by pushing an object here.

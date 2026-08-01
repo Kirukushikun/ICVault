@@ -18,7 +18,7 @@ final class GuideLibrary
         'git-commands' => [
             'title' => '10 Git Commands',
             'subtitle' => 'Every developer should know',
-            'eyebrow' => 'Developer Field Guide 02',
+            'eyebrow' => 'Developer Field Guide 01',
             'blurb' => 'One continuous workflow — from init through push — with the working tree, staging area, and remote drawn as you step through each command.',
             'steps' => 10,
             'accent' => '#F05033',
