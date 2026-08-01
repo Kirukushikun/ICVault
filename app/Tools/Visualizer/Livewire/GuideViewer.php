@@ -27,6 +27,10 @@ class GuideViewer extends Component
         $guide = $guides->find($this->slug);
 
         return view($guides->view($this->slug), ['guide' => $guide])
-            ->layoutData(['title' => 'ICVault — '.$guide['title']]);
+            ->layoutData([
+                'title' => 'ICVault — '.$guide['title'],
+                'guideTitle' => $guide['title'],
+                'guideAccent' => $guide['accent'],
+            ]);
     }
 }

@@ -13,36 +13,45 @@
 @verbatim
 <style>
 :root{
-  --bg:#0d1117;          /* github dark canvas */
-  --panel:#161b22;       /* raised surface */
-  --panel-2:#1c2129;
-  --line:#30363d;        /* borders */
-  --line-soft:#21262d;
-  --ink:#e6edf3;         /* primary text */
-  --ink-dim:#8b949e;     /* muted */
-  --ink-faint:#6e7681;
-  --amber:#ff8c42;       /* github-ish orange */
-  --amber-hot:#ff6a00;   /* hotter accent */
-  --amber-soft:rgba(255,140,66,.14);
-  --green:#3fb950;       /* commit/success */
-  --blue:#58a6ff;        /* remote/info */
-  --purple:#bc8cff;      /* branch */
+  /* ICVault surface tokens — a guide should read as part of the platform,
+     not as a separate document with its own idea of what dark looks like. */
+  --bg:#1A1A1D;
+  --panel:#222226;       /* matches .card in the app shell */
+  --panel-2:#1c1c20;
+  --line:rgba(255,255,255,.08);
+  --line-soft:rgba(255,255,255,.05);
+  --ink:#ffffff;
+  --ink-dim:rgba(255,255,255,.45);
+  --ink-faint:rgba(255,255,255,.28);
+  /* Git orange, matched to the logo mark so the accent and the glyph agree. */
+  --amber:#f05133;
+  --amber-hot:#ff7a5c;
+  --amber-soft:rgba(240,81,51,.14);
+  --green:#2e9c6b;       /* commit/success — ICVault green */
+  --blue:#2e9cca;        /* remote/info   — ICVault blue  */
+  --purple:#9b5fcf;      /* branch        — ICVault purple*/
   --stage:#ffd8a8;
-  --radius:14px;
+  --radius:16px;         /* app cards use 16px */
 }
-*{box-sizing:border-box;margin:0;padding:0}
+/* Scoped to the guide: an unlayered `*` reset would out-rank Tailwind's
+   utility layer and strip the platform header's spacing. */
+.visualizer-guide *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(255,106,0,.10), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(88,166,255,.06), transparent 55%),
+    radial-gradient(1100px 560px at 82% -8%, rgba(240,81,51,.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(195,7,63,.06), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Ccircle cx='14' cy='14' r='1' fill='white' fill-opacity='0.1'/%3E%3C/svg%3E"),
     var(--bg);
+  background-size:auto,auto,28px 28px,auto;
+  background-attachment:fixed;
   color:var(--ink);
-  font-family:'Space Grotesk',system-ui,sans-serif;
+  font-family:'Roboto',ui-sans-serif,system-ui,sans-serif;
   line-height:1.5;
   min-height:100vh;
-  padding:clamp(16px,3vw,40px);
 }
+/* Padding lives here, not on body, so the platform header stays flush. */
+.visualizer-guide{padding:clamp(16px,3vw,40px)}
 .wrap{max-width:1200px;margin:0 auto}
 
 /* ---------- Header ---------- */
@@ -63,8 +72,9 @@ body{
 }
 .glyph img{width:100%;height:100%;object-fit:contain}
 h1{
-  font-family:'JetBrains Mono',monospace;font-weight:800;
-  font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.02em;
+  /* League Spartan is the platform's display face — same as page titles in the shell. */
+  font-family:'League Spartan','JetBrains Mono',sans-serif;font-weight:700;
+  font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:.02em;
 }
 h1 .num{color:var(--amber)}
 .sub{
@@ -98,7 +108,7 @@ h1 .num{color:var(--amber)}
 .badge{
   font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;
   color:var(--amber);border:1px solid var(--line);border-radius:6px;
-  padding:3px 6px;min-width:26px;text-align:center;background:#0d1117;
+  padding:3px 6px;min-width:26px;text-align:center;background:#0e0e10;
 }
 .cmd.active .badge{border-color:var(--amber);color:#fff;background:var(--amber-hot)}
 .cmd-main{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -113,7 +123,7 @@ h1 .num{color:var(--amber)}
   position:sticky;top:24px;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
 }
-.terminal{background:#010409;border-bottom:1px solid var(--line);padding:14px 16px}
+.terminal{background:#0a0a0b;border-bottom:1px solid var(--line);padding:14px 16px}
 .term-bar{display:flex;align-items:center;gap:7px;margin-bottom:12px}
 .dot{width:11px;height:11px;border-radius:50%}
 .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
@@ -137,21 +147,21 @@ h1 .num{color:var(--amber)}
 .zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .zone{
   border:1px solid var(--line);border-radius:10px;padding:10px;min-height:96px;
-  background:#0d1117;position:relative;transition:border-color .3s,box-shadow .3s;
+  background:#0e0e10;position:relative;transition:border-color .3s,box-shadow .3s;
 }
-.zone.lit{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 18px rgba(255,140,66,.25) inset}
+.zone.lit{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 18px rgba(240,81,51,.25) inset}
 .zone-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
   color:var(--ink-faint);text-transform:uppercase;margin-bottom:8px}
 .files{display:flex;gap:6px;flex-wrap:wrap;min-height:40px}
 .file{
   width:34px;height:40px;border:1px solid var(--amber);border-radius:5px;
   display:grid;place-items:end center;padding-bottom:3px;font-family:'JetBrains Mono',monospace;
-  font-size:8px;color:var(--amber);position:relative;background:rgba(255,140,66,.05);
+  font-size:8px;color:var(--amber);position:relative;background:rgba(240,81,51,.05);
   /* color/border transitions smoothly; position is driven by FLIP transform */
   transition:border-color .4s ease, color .4s ease, background .4s ease;
 }
 .file.staged{border-color:var(--stage);color:var(--stage);background:rgba(255,216,168,.08)}
-.file.committed{border-color:var(--green);color:var(--green);background:rgba(63,185,80,.08)}
+.file.committed{border-color:var(--green);color:var(--green);background:rgba(46,156,107,.08)}
 .file::before{content:"";position:absolute;top:4px;left:5px;right:5px;height:2px;
   background:currentColor;opacity:.4;box-shadow:0 4px 0 currentColor,0 8px 0 currentColor;opacity:.25}
 /* fresh files entering fade+rise in */
@@ -167,21 +177,21 @@ h1 .num{color:var(--amber)}
 .file.gather{animation:gather .32s ease forwards}
 @keyframes gather{
   0%{border-color:var(--stage);color:var(--stage)}
-  45%{border-color:var(--green);color:var(--green);box-shadow:0 0 10px rgba(63,185,80,.6)}
+  45%{border-color:var(--green);color:var(--green);box-shadow:0 0 10px rgba(46,156,107,.6)}
   100%{opacity:0;transform:scale(.35);border-color:var(--green)}
 }
 /* the single travelling snapshot — an HTML dot flown over the layout */
 .commit-pulse{
   position:fixed;width:16px;height:16px;border-radius:50%;
   background:var(--green);pointer-events:none;z-index:50;
-  box-shadow:0 0 14px 4px rgba(63,185,80,.7);
+  box-shadow:0 0 14px 4px rgba(46,156,107,.7);
   transform:translate(-50%,-50%) scale(1);
 }
 .commit-pulse.fly{transition:left .6s cubic-bezier(.5,0,.2,1),
   top .6s cubic-bezier(.5,0,.2,1), transform .6s cubic-bezier(.5,0,.2,1)}
 
 /* repo graph */
-.repo{border:1px solid var(--line);border-radius:10px;background:#0d1117;padding:14px;margin-bottom:14px}
+.repo{border:1px solid var(--line);border-radius:10px;background:#0e0e10;padding:14px;margin-bottom:14px}
 .repo-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
   color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px}
 .graph{width:100%;height:170px;overflow:visible}
@@ -197,7 +207,7 @@ h1 .num{color:var(--amber)}
 .headtag rect{fill:var(--amber-hot)}
 .headtag text{fill:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
 .branchtag rect{fill:var(--purple)}
-.branchtag text{fill:#0d1117;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
+.branchtag text{fill:#0e0e10;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
 .hashlbl{fill:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:9px}
 /* travelling data packet for pull/push */
 .packet{filter:drop-shadow(0 0 5px var(--blue));transition:opacity .2s ease}
@@ -220,14 +230,14 @@ h1 .num{color:var(--amber)}
 .lbl-in.shown{animation:lblIn .5s cubic-bezier(.34,1.56,.64,1) forwards}
 @keyframes lblIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
 .pulse{animation:pulse 1.6s ease-in-out infinite}
-@keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(63,185,80,0))}50%{filter:drop-shadow(0 0 6px rgba(63,185,80,.7))}}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(46,156,107,0))}50%{filter:drop-shadow(0 0 6px rgba(46,156,107,.7))}}
 
 /* remote */
 .remote{display:flex;align-items:center;gap:12px;border:1px solid var(--line);
-  border-radius:10px;background:#0d1117;padding:12px 14px;transition:.3s}
+  border-radius:10px;background:#0e0e10;padding:12px 14px;transition:.3s}
 .remote.lit{border-color:var(--blue);
-  box-shadow:0 0 22px rgba(88,166,255,.35), 0 0 16px rgba(88,166,255,.22) inset;
-  background:rgba(88,166,255,.06)}
+  box-shadow:0 0 22px rgba(46,156,202,.35), 0 0 16px rgba(46,156,202,.22) inset;
+  background:rgba(46,156,202,.06)}
 .remote svg{width:26px;height:26px;flex:none}
 .remote-name{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
 .remote-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
@@ -240,9 +250,9 @@ h1 .num{color:var(--amber)}
     border-color .3s,box-shadow .3s,padding .35s ease}
 .stash-shelf.lit{opacity:1;min-height:70px;height:auto;margin-bottom:14px;
   padding:10px;border-width:1px;border-color:var(--purple);
-  box-shadow:0 0 16px rgba(188,140,255,.16) inset}
+  box-shadow:0 0 16px rgba(155,95,207,.16) inset}
 .stash-shelf .file.stashed{border-color:var(--purple);color:var(--purple);
-  background:rgba(188,140,255,.08)}
+  background:rgba(155,95,207,.08)}
 
 /* explanation */
 .explain{border-top:1px solid var(--line);padding:16px;background:var(--panel-2)}

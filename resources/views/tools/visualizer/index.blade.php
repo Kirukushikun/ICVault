@@ -10,7 +10,9 @@
 
     <div class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
         @foreach ($guides as $slug => $guide)
-            <a href="{{ route('visualizer.guide', $slug) }}" wire:navigate
+            {{-- Plain link, not wire:navigate: a guide ships its own inline script,
+                 which an SPA body swap would not re-run. --}}
+            <a href="{{ route('visualizer.guide', $slug) }}"
                style="--accent: {{ $guide['accent'] }};"
                class="card group relative overflow-hidden p-6 no-underline text-white
                       transition-[transform,border-color,box-shadow] duration-200
