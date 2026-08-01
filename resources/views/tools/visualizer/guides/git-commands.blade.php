@@ -1,22 +1,29 @@
 <div class="visualizer-guide">
-{{--
+<!-- {{--
     Concept Visualizer guide: 10 Git Commands.
 
     Guides are hand-authored, self-contained pages — markup, styles and script
-    live together here on purpose. Everything is wrapped in @verbatim so Blade
+    live together here on purpose. Everything is wrapped in @ verbatim so Blade
     leaves the CSS at-rules and JS template syntax completely alone.
 
     Rendered full-bleed by layouts/canvas.blade.php; registered in
     App\Tools\Visualizer\GuideLibrary.
---}}
+--}} -->
 
 @verbatim
 <style>
 :root{
   /* ICVault surface tokens — a guide should read as part of the platform,
      not as a separate document with its own idea of what dark looks like. */
+  /* Three depths, close together on purpose — the stack should read as one
+     surface catching light, not as cut-outs onto a black void:
+       inset  (terminal, zones, repo)  a touch under the page
+       bg / panel                      the page and its cards
+       lift   (explain)                a touch over the panel            */
+  --inset:#161617;       /* same tone as the app's sidebar */
   --bg:#1A1A1D;
   --panel:#222226;       /* matches .card in the app shell */
+  --panel-lift:#27272C;
   --panel-2:#1c1c20;
   --line:rgba(255,255,255,.08);
   --line-soft:rgba(255,255,255,.05);
@@ -89,7 +96,7 @@ h1 .num{color:var(--amber)}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
 
 /* ---------- Command list ---------- */
-.list{display:flex;flex-direction:column;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom:25px}
 .cmd{
   position:relative;text-align:left;width:100%;cursor:pointer;
   background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;
@@ -108,7 +115,7 @@ h1 .num{color:var(--amber)}
 .badge{
   font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;
   color:var(--amber);border:1px solid var(--line);border-radius:6px;
-  padding:3px 6px;min-width:26px;text-align:center;background:#0e0e10;
+  padding:3px 6px;min-width:26px;text-align:center;background:var(--inset);
 }
 .cmd.active .badge{border-color:var(--amber);color:#fff;background:var(--amber-hot)}
 .cmd-main{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -123,7 +130,7 @@ h1 .num{color:var(--amber)}
   position:sticky;top:24px;background:var(--panel);
   border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
 }
-.terminal{background:#0a0a0b;border-bottom:1px solid var(--line);padding:14px 16px}
+.terminal{background:var(--inset);border-bottom:1px solid var(--line);padding:14px 16px}
 .term-bar{display:flex;align-items:center;gap:7px;margin-bottom:12px}
 .dot{width:11px;height:11px;border-radius:50%}
 .dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
@@ -147,7 +154,7 @@ h1 .num{color:var(--amber)}
 .zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .zone{
   border:1px solid var(--line);border-radius:10px;padding:10px;min-height:96px;
-  background:#0e0e10;position:relative;transition:border-color .3s,box-shadow .3s;
+  background:var(--inset);position:relative;transition:border-color .3s,box-shadow .3s;
 }
 .zone.lit{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 18px rgba(240,81,51,.25) inset}
 .zone-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
@@ -191,7 +198,7 @@ h1 .num{color:var(--amber)}
   top .6s cubic-bezier(.5,0,.2,1), transform .6s cubic-bezier(.5,0,.2,1)}
 
 /* repo graph */
-.repo{border:1px solid var(--line);border-radius:10px;background:#0e0e10;padding:14px;margin-bottom:14px}
+.repo{border:1px solid var(--line);border-radius:10px;background:var(--inset);padding:14px 14px 24px;margin-bottom:14px}
 .repo-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
   color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px}
 .graph{width:100%;height:170px;overflow:visible}
@@ -207,7 +214,7 @@ h1 .num{color:var(--amber)}
 .headtag rect{fill:var(--amber-hot)}
 .headtag text{fill:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
 .branchtag rect{fill:var(--purple)}
-.branchtag text{fill:#0e0e10;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
+.branchtag text{fill:#1A1A1D;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
 .hashlbl{fill:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:9px}
 /* travelling data packet for pull/push */
 .packet{filter:drop-shadow(0 0 5px var(--blue));transition:opacity .2s ease}
@@ -234,7 +241,7 @@ h1 .num{color:var(--amber)}
 
 /* remote */
 .remote{display:flex;align-items:center;gap:12px;border:1px solid var(--line);
-  border-radius:10px;background:#0e0e10;padding:12px 14px;transition:.3s}
+  border-radius:10px;background:var(--inset);padding:12px 14px;transition:.3s}
 .remote.lit{border-color:var(--blue);
   box-shadow:0 0 22px rgba(46,156,202,.35), 0 0 16px rgba(46,156,202,.22) inset;
   background:rgba(46,156,202,.06)}
@@ -255,7 +262,7 @@ h1 .num{color:var(--amber)}
   background:rgba(155,95,207,.08)}
 
 /* explanation */
-.explain{border-top:1px solid var(--line);padding:16px;background:var(--panel-2)}
+.explain{border-top:1px solid var(--line);padding:16px;background:var(--panel-lift)}
 .explain h3{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.1em;
   color:var(--amber);text-transform:uppercase;margin-bottom:6px}
 .explain p{font-size:14px;color:var(--ink);margin-bottom:10px}
