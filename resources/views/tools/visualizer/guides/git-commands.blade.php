@@ -1,0 +1,1149 @@
+<div class="visualizer-guide">
+{{--
+    Concept Visualizer guide: 10 Git Commands.
+
+    Guides are hand-authored, self-contained pages — markup, styles and script
+    live together here on purpose. Everything is wrapped in @verbatim so Blade
+    leaves the CSS at-rules and JS template syntax completely alone.
+
+    Rendered full-bleed by layouts/canvas.blade.php; registered in
+    App\Tools\Visualizer\GuideLibrary.
+--}}
+
+@verbatim
+<style>
+:root{
+  --bg:#0d1117;          /* github dark canvas */
+  --panel:#161b22;       /* raised surface */
+  --panel-2:#1c2129;
+  --line:#30363d;        /* borders */
+  --line-soft:#21262d;
+  --ink:#e6edf3;         /* primary text */
+  --ink-dim:#8b949e;     /* muted */
+  --ink-faint:#6e7681;
+  --amber:#ff8c42;       /* github-ish orange */
+  --amber-hot:#ff6a00;   /* hotter accent */
+  --amber-soft:rgba(255,140,66,.14);
+  --green:#3fb950;       /* commit/success */
+  --blue:#58a6ff;        /* remote/info */
+  --purple:#bc8cff;      /* branch */
+  --stage:#ffd8a8;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(255,106,0,.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(88,166,255,.06), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  line-height:1.5;
+  min-height:100vh;
+  padding:clamp(16px,3vw,40px);
+}
+.wrap{max-width:1200px;margin:0 auto}
+
+/* ---------- Header ---------- */
+.eyebrow{
+  display:flex;justify-content:space-between;align-items:center;
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;
+  color:var(--amber);text-transform:uppercase;margin-bottom:18px;
+}
+.eyebrow .right{color:var(--ink-faint)}
+.masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.glyph{
+  width:52px;height:52px;flex:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--amber-hot),var(--amber));
+  display:grid;place-items:center;box-shadow:0 6px 24px rgba(255,106,0,.35);
+  transform:rotate(-4deg);
+}
+.glyph svg{width:30px;height:30px}
+h1{
+  font-family:'JetBrains Mono',monospace;font-weight:800;
+  font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.02em;
+}
+h1 .num{color:var(--amber)}
+.sub{
+  font-family:'JetBrains Mono',monospace;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--ink-dim);font-size:clamp(11px,2vw,14px);
+  margin-top:8px;
+}
+.rule{height:2px;background:linear-gradient(90deg,var(--amber),transparent);margin:22px 0 26px;border-radius:2px}
+
+/* ---------- Layout ---------- */
+.grid{display:grid;grid-template-columns:minmax(320px,1fr) minmax(340px,1.15fr);gap:24px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+
+/* ---------- Command list ---------- */
+.list{display:flex;flex-direction:column;gap:8px}
+.cmd{
+  position:relative;text-align:left;width:100%;cursor:pointer;
+  background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;
+  padding:14px 16px 14px 18px;color:var(--ink);
+  transition:border-color .2s,background .2s,transform .12s;
+  display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;
+  font-family:inherit;
+}
+.cmd:hover{border-color:var(--line);background:var(--panel-2)}
+.cmd:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.cmd.active{border-color:var(--amber);background:linear-gradient(90deg,var(--amber-soft),transparent 70%)}
+.cmd.active::before{
+  content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;
+  background:var(--amber);box-shadow:0 0 12px var(--amber-hot);
+}
+.badge{
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;
+  color:var(--amber);border:1px solid var(--line);border-radius:6px;
+  padding:3px 6px;min-width:26px;text-align:center;background:#0d1117;
+}
+.cmd.active .badge{border-color:var(--amber);color:#fff;background:var(--amber-hot)}
+.cmd-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.cmd-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px}
+.cmd-code .kw{color:var(--ink-dim)}
+.cmd-code .verb{color:var(--ink)}
+.cmd.active .cmd-code .verb{color:var(--amber)}
+.cmd-desc{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* ---------- Stage panel ---------- */
+.stage{
+  position:sticky;top:24px;background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+}
+.terminal{background:#010409;border-bottom:1px solid var(--line);padding:14px 16px}
+.term-bar{display:flex;align-items:center;gap:7px;margin-bottom:12px}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#ff5f57}.dot.y{background:#febc2e}.dot.g{background:#28c840}
+.term-label{margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:.16em;color:var(--ink-faint);text-transform:uppercase}
+.term-line{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500}
+.term-line .p{color:var(--green)}
+.term-line .c{color:var(--ink)}
+.caret{display:inline-block;width:9px;height:18px;background:var(--amber);
+  vertical-align:-3px;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.term-note{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--ink-dim);text-transform:uppercase;margin-top:8px}
+.progress{height:3px;background:var(--line-soft);border-radius:3px;margin-top:12px;overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--amber-hot),var(--amber));
+  animation:fill .7s ease forwards}
+@keyframes fill{to{width:100%}}
+
+/* stage viz area */
+.viz{padding:18px 16px 20px}
+.zones{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.zone{
+  border:1px solid var(--line);border-radius:10px;padding:10px;min-height:96px;
+  background:#0d1117;position:relative;transition:border-color .3s,box-shadow .3s;
+}
+.zone.lit{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 18px rgba(255,140,66,.25) inset}
+.zone-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
+  color:var(--ink-faint);text-transform:uppercase;margin-bottom:8px}
+.files{display:flex;gap:6px;flex-wrap:wrap;min-height:40px}
+.file{
+  width:34px;height:40px;border:1px solid var(--amber);border-radius:5px;
+  display:grid;place-items:end center;padding-bottom:3px;font-family:'JetBrains Mono',monospace;
+  font-size:8px;color:var(--amber);position:relative;background:rgba(255,140,66,.05);
+  /* color/border transitions smoothly; position is driven by FLIP transform */
+  transition:border-color .4s ease, color .4s ease, background .4s ease;
+}
+.file.staged{border-color:var(--stage);color:var(--stage);background:rgba(255,216,168,.08)}
+.file.committed{border-color:var(--green);color:var(--green);background:rgba(63,185,80,.08)}
+.file::before{content:"";position:absolute;top:4px;left:5px;right:5px;height:2px;
+  background:currentColor;opacity:.4;box-shadow:0 4px 0 currentColor,0 8px 0 currentColor;opacity:.25}
+/* fresh files entering fade+rise in */
+.file.enter{animation:fileIn .45s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes fileIn{from{opacity:0;transform:translateY(6px) scale(.9)}to{opacity:1;transform:none}}
+/* files leaving fade+shrink out */
+.file.leave{animation:fileOut .35s ease forwards;pointer-events:none}
+@keyframes fileOut{to{opacity:0;transform:scale(.7)}}
+/* the FLIP move: element jumps to old spot via transform, then eases to 0 */
+.file.moving{transition:transform .55s cubic-bezier(.65,0,.35,1),
+  border-color .4s ease, color .4s ease, background .4s ease}
+/* staged files flash green and collapse together into the pulse */
+.file.gather{animation:gather .32s ease forwards}
+@keyframes gather{
+  0%{border-color:var(--stage);color:var(--stage)}
+  45%{border-color:var(--green);color:var(--green);box-shadow:0 0 10px rgba(63,185,80,.6)}
+  100%{opacity:0;transform:scale(.35);border-color:var(--green)}
+}
+/* the single travelling snapshot — an HTML dot flown over the layout */
+.commit-pulse{
+  position:fixed;width:16px;height:16px;border-radius:50%;
+  background:var(--green);pointer-events:none;z-index:50;
+  box-shadow:0 0 14px 4px rgba(63,185,80,.7);
+  transform:translate(-50%,-50%) scale(1);
+}
+.commit-pulse.fly{transition:left .6s cubic-bezier(.5,0,.2,1),
+  top .6s cubic-bezier(.5,0,.2,1), transform .6s cubic-bezier(.5,0,.2,1)}
+
+/* repo graph */
+.repo{border:1px solid var(--line);border-radius:10px;background:#0d1117;padding:14px;margin-bottom:14px}
+.repo-h{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
+  color:var(--ink-faint);text-transform:uppercase;margin-bottom:6px}
+.graph{width:100%;height:170px;overflow:visible}
+.commit{fill:var(--panel);stroke:var(--amber);stroke-width:2.5}
+.commit.root{fill:var(--amber-hot);stroke:var(--amber-hot)}
+.commit.head-c{fill:var(--green);stroke:var(--green)}
+.commit.feat{stroke:var(--purple)}
+.edge{stroke:var(--line);stroke-width:2.5;fill:none;stroke-linecap:round}
+.edge.hot{stroke:var(--amber)}
+.edge.feat{stroke:var(--purple)}
+.edge.remote{stroke:var(--blue)}
+
+.headtag rect{fill:var(--amber-hot)}
+.headtag text{fill:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
+.branchtag rect{fill:var(--purple)}
+.branchtag text{fill:#0d1117;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
+.hashlbl{fill:var(--ink-dim);font-family:'JetBrains Mono',monospace;font-size:9px}
+/* travelling data packet for pull/push */
+.packet{filter:drop-shadow(0 0 5px var(--blue));transition:opacity .2s ease}
+/* opacity-only reveal (no transform) — used by the riding HEAD tag so its
+   transform attribute is free for the JS ride tween */
+.fade-in{opacity:0}
+.fade-in.shown{animation:fadeIn .4s ease forwards}
+@keyframes fadeIn{to{opacity:1}}
+
+/* smooth line growth — edge starts hidden (offset=length via attribute),
+   then .growing plays a one-shot keyframe from --len → 0. No transition race,
+   so the finished graph never flashes before the build. */
+.edge.growing{animation:grow .7s cubic-bezier(.65,0,.35,1) forwards}
+@keyframes grow{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+/* nodes + labels: keyframe-based so they ALWAYS start hidden and play forward once */
+.node-in{opacity:0;transform-box:fill-box;transform-origin:center}
+.node-in.shown{animation:nodeIn .55s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes nodeIn{from{opacity:0;transform:translateY(4px) scale(.6)}to{opacity:1;transform:none}}
+.lbl-in{opacity:0;transform-box:fill-box}
+.lbl-in.shown{animation:lblIn .5s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes lblIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 0 rgba(63,185,80,0))}50%{filter:drop-shadow(0 0 6px rgba(63,185,80,.7))}}
+
+/* remote */
+.remote{display:flex;align-items:center;gap:12px;border:1px solid var(--line);
+  border-radius:10px;background:#0d1117;padding:12px 14px;transition:.3s}
+.remote.lit{border-color:var(--blue);
+  box-shadow:0 0 22px rgba(88,166,255,.35), 0 0 16px rgba(88,166,255,.22) inset;
+  background:rgba(88,166,255,.06)}
+.remote svg{width:26px;height:26px;flex:none}
+.remote-name{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px}
+.remote-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+  color:var(--ink-faint);text-transform:uppercase}
+
+/* stash shelf — a drawer below the graph; only shown while stashing */
+.stash-shelf{margin-bottom:0;min-height:0;height:0;padding-top:0;padding-bottom:0;
+  border-width:0;opacity:0;overflow:hidden;
+  transition:height .35s ease,opacity .3s ease,margin .35s ease,
+    border-color .3s,box-shadow .3s,padding .35s ease}
+.stash-shelf.lit{opacity:1;min-height:70px;height:auto;margin-bottom:14px;
+  padding:10px;border-width:1px;border-color:var(--purple);
+  box-shadow:0 0 16px rgba(188,140,255,.16) inset}
+.stash-shelf .file.stashed{border-color:var(--purple);color:var(--purple);
+  background:rgba(188,140,255,.08)}
+
+/* explanation */
+.explain{border-top:1px solid var(--line);padding:16px;background:var(--panel-2)}
+.explain h3{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.1em;
+  color:var(--amber);text-transform:uppercase;margin-bottom:6px}
+.explain p{font-size:14px;color:var(--ink);margin-bottom:10px}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint)}
+.flow b{color:var(--ink)}
+.flow .on{color:var(--amber)}
+.flow .arw{color:var(--amber)}
+
+/* footer */
+footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;
+  color:var(--ink-dim);text-transform:uppercase}
+.foot-flow b{color:var(--amber)}
+.counter{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--amber);
+  border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+.tagline{font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.02em;
+  color:var(--ink);font-size:clamp(14px,3vw,18px);margin-top:14px}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+
+<div class="wrap">
+
+  <div class="eyebrow">
+    <span>&gt;_ coding chops</span>
+    <span class="right">developer field guide 02</span>
+  </div>
+
+  <div class="masthead">
+    <div class="glyph" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 2 8v8l10 6 10-6V8L12 2Z" stroke="#0d1117" stroke-width="1.6"/><circle cx="12" cy="12" r="2.4" fill="#0d1117"/><path d="M12 9.6V4M12 14.4V20M9.6 12H4M14.4 12H20" stroke="#0d1117" stroke-width="1.6"/></svg>
+    </div>
+    <div>
+      <h1><span class="num">10</span> GIT COMMANDS</h1>
+      <div class="sub">every developer should know</div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="grid">
+    <!-- LEFT: command list -->
+    <div class="list" id="list" role="tablist" aria-label="Git commands"></div>
+
+    <!-- RIGHT: stage -->
+    <div class="stage">
+      <div class="terminal">
+        <div class="term-bar">
+          <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+          <span class="term-label">repository terminal</span>
+        </div>
+        <div class="term-line"><span class="p">$</span> <span class="c" id="termCode">git init</span><span class="caret"></span></div>
+        <div class="term-note" id="termNote">create a repository</div>
+        <div class="progress" id="prog"><span></span></div>
+      </div>
+
+      <div class="viz">
+        <div class="zones">
+          <div class="zone" id="zWork">
+            <div class="zone-h">working tree</div>
+            <div class="files" id="workFiles"></div>
+          </div>
+          <div class="zone" id="zStage">
+            <div class="zone-h">staging area</div>
+            <div class="files" id="stageFiles"></div>
+          </div>
+        </div>
+
+        <div class="repo">
+          <div class="repo-h">local repository</div>
+          <svg class="graph" id="graph" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+
+        <div class="zone stash-shelf" id="zStash">
+          <div class="zone-h">stash</div>
+          <div class="files" id="stashFiles"></div>
+        </div>
+
+        <div class="remote" id="remote">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A3.5 3.5 0 0 1 18 18H7Z" stroke="var(--blue)" stroke-width="1.6"/><path d="M12 21v-6M12 21l-2-2M12 21l2-2" stroke="var(--blue)" stroke-width="1.6" id="remoteArrow"/></svg>
+          <div>
+            <div class="remote-name">origin/main</div>
+            <div class="remote-sub">remote branch</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="explain">
+        <h3 id="exTitle">git init</h3>
+        <p id="exBody">Creates a new, empty repository in the current folder.</p>
+        <div class="flow" id="exFlow"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot-flow">working tree <b>›</b> staging <b>›</b> local <b>›</b> origin</div>
+    <div class="counter" id="counter">01 / 10</div>
+  </footer>
+  <div class="tagline">ONE WORKFLOW. TEN ESSENTIAL COMMANDS.</div>
+
+</div>
+
+<script>
+/* ============================================================
+   DATA — add a command by pushing an object here.
+   stages: which zones light up  → work | stage | local | remote
+   render(): drives the animation for that command.
+   ============================================================ */
+const COMMANDS = [
+  { n:"01", verb:"init",   cmd:"git init",   tag:"setup",  title:"Create a repository",
+    body:"Turns the current folder into a Git repository. Nothing is tracked yet — you get an empty history ready for its first commit.",
+    flow:["folder","›","<span class='on'>.git</span>"], lit:["local"],
+    render:()=>{ setFiles([],[]); drawGraph(0); } },
+
+  { n:"02", verb:"status", cmd:"git status", tag:"check", title:"Inspect changes",
+    body:"Shows what's changed: which files are modified, which are staged, and which are untracked. Your most-run command — it answers \"where am I?\"",
+    flow:["<span class='on'>working tree</span>","+","<span class='on'>staging</span>"], lit:["work","stage"],
+    render:()=>{ setFiles(["app","api","css"],[]); drawGraph(2); } },
+
+  { n:"03", verb:"add",    cmd:"git add",    tag:"stage", title:"Move files to staging",
+    body:"Copies your changes into the staging area — the shortlist of what your next commit will include. Stage selectively; commit intentionally.",
+    flow:["working tree","<span class='arw'>→</span>","<span class='on'>staging</span>"], lit:["stage"],
+    render:()=>{
+      // Start with the three dirty files in the working tree (whether or not
+      // you arrived from git status), then transfer them into staging.
+      setFiles(["app","api","css"],[]); drawGraph(2);
+      afterFiles(()=> setFiles([],["app","api","css"],true));
+    } },
+
+  { n:"04", verb:"commit", cmd:"git commit", tag:"save", title:"Save a snapshot",
+    body:"Records everything in the staging area as a permanent snapshot in history, with a message describing what changed. This is the unit of work in Git.",
+    flow:["staging","<span class='arw'>→</span>","<span class='on'>local repo</span>"], lit:["local"],
+    render:()=>{
+      // Arrive with the staged snapshot, draw history holding the top commit
+      // hidden, then fly the staged files in as one green pulse that becomes it.
+      setFiles([],["app","api","css"],true);
+      drawGraph(3,{flyCommit:true});
+      afterFiles(()=>commitFlyIn(), 620);
+    } },
+
+  { n:"05", verb:"branch", cmd:"git branch", tag:"branch", title:"Create a new line",
+    body:"Opens a parallel line of development from the current commit. Work on features without touching main until you're ready.",
+    flow:["main","<span class='arw'>⑂</span>","<span class='on'>feature</span>"], lit:["local"],
+    render:()=>{ setFiles([],[]); drawGraph(3,{branch:true,chainStep:"branch"}); } },
+
+  { n:"06", verb:"switch", cmd:"git switch", tag:"move", title:"Move HEAD",
+    body:"Moves you onto another branch. HEAD — the marker for \"where you are\" — jumps to the branch tip, and your working tree updates to match.",
+    flow:["<span class='on'>HEAD</span>","→","branch tip"], lit:["local"],
+    render:()=>{ setFiles([],[]); drawGraph(3,{branch:true,headOn:"branch",chainStep:"switch"}); } },
+
+  { n:"07", verb:"merge",  cmd:"git merge",  tag:"join", title:"Combine histories",
+    body:"Brings another branch's commits into your current one, weaving two lines of history back together. Resolve conflicts if the same lines changed.",
+    flow:["feature","<span class='arw'>+</span>","<span class='on'>main</span>"], lit:["local"],
+    render:()=>{ setFiles([],[]); drawGraph(3,{branch:true,merge:true,chainStep:"merge"}); } },
+
+  { n:"08", verb:"stash",  cmd:"git stash",  tag:"hold", title:"Shelve work temporarily",
+    body:"Tucks unfinished changes onto a shelf and gives you a clean working tree. Restore them later with stash pop — handy for a quick context switch.",
+    flow:["working tree","<span class='arw'>→</span>","<span class='on'>stash</span>"], lit:["work","stash"],
+    render:()=>{
+      // Start with dirty files in the working tree, then slide them onto the
+      // stash shelf — leaving a clean tree behind.
+      setFiles(["app","api","css"],[]); drawGraph(3);
+      afterFiles(()=> setFiles([],[],false,["app","api","css"]));
+    } },
+
+  { n:"09", verb:"pull",   cmd:"git pull",   tag:"sync", title:"Download + integrate",
+    body:"Fetches new commits from the remote and merges them into your branch in one step — bringing your local copy up to date with everyone else's work.",
+    flow:["<span class='on'>origin</span>","<span class='arw'>→</span>","local"], lit:["remote","local"],
+    render:()=>{ setFiles([],[]); drawGraph(4,{fromRemote:true}); } },
+
+  { n:"10", verb:"push",   cmd:"git push",   tag:"ship", title:"Publish commits",
+    body:"Uploads your local commits to the remote so teammates can see them. The last step of the loop: your snapshots become everyone's.",
+    flow:["local","<span class='arw'>→</span>","<span class='on'>origin</span>"], lit:["local","remote"],
+    render:()=>{ setFiles([],[]); drawGraph(4,{toRemote:true}); } },
+];
+
+/* ---------- build list ---------- */
+const listEl = document.getElementById("list");
+function buildList(){
+  listEl.innerHTML="";
+  COMMANDS.forEach((c,i)=>{
+    const b=document.createElement("button");
+    b.className="cmd";b.setAttribute("role","tab");
+    b.innerHTML=`<span class="badge">${c.n}</span>
+      <span class="cmd-main">
+        <span class="cmd-code"><span class="kw">$ git</span> <span class="verb">${c.verb}</span></span>
+        <span class="cmd-desc">${c.title}</span>
+      </span>`;
+    b.addEventListener("click",()=>select(i));
+    listEl.appendChild(b);
+  });
+}
+
+/* ============================================================
+   Persistent file engine (FLIP).
+   Files are keyed by name and live in a registry that survives
+   between commands. setFiles() declares the desired end-state
+   (which files are in which zone, and their style). The engine:
+     • records each existing file's screen position (First)
+     • moves it to the new zone in the DOM (Last)
+     • transforms it back to where it was (Invert)
+     • releases the transform so it eases to the new spot (Play)
+   New files fade in; removed files fade out. That gives a real
+   "slide from working tree → staging" transfer for git add, and
+   the same mechanism handles commit clearing staging, stash, etc.
+   ============================================================ */
+const fileReg = new Map();   // name → element (persists across commands)
+
+function makeFile(name){
+  const d=document.createElement("div");
+  d.className="file";
+  d.dataset.name=name;
+  d.textContent=name;
+  return d;
+}
+
+/* desired = [ {name, zone:'work'|'stage'|'stash', style} ]
+   setFiles(work, stage, staged, stashList) — stashList is an array of names
+   to place on the stash shelf. */
+function setFiles(work, stage, staged, stashList){
+  const desired=[];
+  (work||[]).forEach(n=>desired.push({name:n,zone:"work",style:""}));
+  (stage||[]).forEach(n=>desired.push({name:n,zone:"stage",style:staged?"staged":""}));
+  (Array.isArray(stashList)?stashList:[]).forEach(n=>desired.push({name:n,zone:"stash",style:"stashed"}));
+  applyFiles(desired);
+}
+
+function applyFiles(desired){
+  const wZone=document.getElementById("workFiles");
+  const sZone=document.getElementById("stageFiles");
+  const stZone=document.getElementById("stashFiles");
+  const zoneOf=z=> z==="stage"?sZone : z==="stash"?stZone : wZone;
+  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  // 1) FIRST — record current positions of files that already exist.
+  const first=new Map();
+  fileReg.forEach((el,name)=>{ first.set(name, el.getBoundingClientRect()); });
+
+  const wanted=new Set(desired.map(d=>d.name));
+
+  // 2) Remove files no longer wanted (fade out, then drop from registry).
+  fileReg.forEach((el,name)=>{
+    if(!wanted.has(name)){
+      el.classList.remove("moving","enter");
+      el.classList.add("leave");
+      const gone=el;
+      fileReg.delete(name);
+      if(reduce){ gone.remove(); }
+      else setTimeout(()=>gone.remove(),340);
+    }
+  });
+
+  // 3) Place wanted files into their target zones in order.
+  const fresh=[];
+  desired.forEach((d,i)=>{
+    let el=fileReg.get(d.name);
+    if(!el){                         // brand-new file
+      el=makeFile(d.name);
+      fileReg.set(d.name,el);
+      fresh.push({el,i});
+    }
+    // style class (staged/committed/stashed) — transitions handle the recolor
+    el.classList.remove("staged","committed","stashed");
+    if(d.style) el.classList.add(d.style);
+    // append in desired order into the right zone
+    zoneOf(d.zone).appendChild(el);
+  });
+
+  if(reduce){
+    fresh.forEach(({el})=>{});       // no entrance anim
+    return;
+  }
+
+  // 4) LAST/INVERT/PLAY for pre-existing files that moved.
+  fileReg.forEach((el,name)=>{
+    const prev=first.get(name);
+    if(!prev) return;                // brand-new handled below
+    const now=el.getBoundingClientRect();
+    const dx=prev.left-now.left, dy=prev.top-now.top;
+    if(dx||dy){
+      el.classList.remove("enter");
+      el.style.transform=`translate(${dx}px,${dy}px)`;   // invert
+      el.classList.remove("moving");
+      // next frame: release → eases to natural position
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        el.classList.add("moving");
+        el.style.transform="";
+      }));
+    }
+  });
+
+  // 5) Entrance for genuinely new files, staggered.
+  fresh.forEach(({el},k)=>{
+    el.classList.add("enter");
+    el.style.animationDelay=(k*90)+"ms";
+    el.addEventListener("animationend",()=>{
+      el.classList.remove("enter");el.style.animationDelay="";
+    },{once:true});
+  });
+}
+
+/* Clear the whole registry instantly (used when a command shows no files). */
+function resetFiles(){
+  fileReg.forEach(el=>el.remove());
+  fileReg.clear();
+}
+
+/* Schedule a follow-up file change (e.g. the slide into staging) that is
+   cancelled if the user clicks another command first. Shares seqToken with
+   the graph so everything stays in sync. */
+function afterFiles(fn, delay=520){
+  const myToken=seqToken;
+  setTimeout(()=>{ if(myToken===seqToken) fn(); }, delay);
+}
+
+/* Convert an SVG-space point in the graph to fixed/screen pixels. */
+function graphPointToScreen(px,py){
+  const svg=document.getElementById("graph");
+  const ctm=svg.getScreenCTM();
+  if(!ctm) return null;
+  const pt=svg.createSVGPoint(); pt.x=px; pt.y=py;
+  const s=pt.matrixTransform(ctm);
+  return {x:s.x, y:s.y};
+}
+
+/* The commit "fly-in": staged files flash green and collapse into one
+   glowing pulse, which flies from the staging area into the graph and
+   becomes the new commit node. drawGraph(..,{flyCommit:true}) must have
+   run first so pendingCommit points at the (still-hidden) top node. */
+function commitFlyIn(){
+  const myToken=seqToken;
+  const target=pendingCommit;
+  if(!target){ return; }
+  const stageZone=document.getElementById("stageFiles");
+  const staged=[...stageZone.querySelectorAll(".file")];
+
+  // origin = center of the staging files (fallback: staging zone center)
+  let ox,oy;
+  if(staged.length){
+    const r=stageZone.getBoundingClientRect();
+    ox=r.left+r.width/2; oy=r.top+r.height/2;
+  }else{
+    const r=document.getElementById("zStage").getBoundingClientRect();
+    ox=r.left+r.width/2; oy=r.top+r.height/2;
+  }
+
+  // 1) gather: files flash green and collapse
+  staged.forEach((f,i)=>{ f.style.animationDelay=(i*50)+"ms"; f.classList.add("gather"); });
+
+  // 2) after the gather, launch a single pulse toward the commit node
+  setTimeout(()=>{
+    if(myToken!==seqToken) return;
+    // clear the (now-invisible) staged files from the registry
+    resetFiles();
+
+    const dest=graphPointToScreen(target.x,target.y);
+    if(!dest){                        // no layout (edge case) → just reveal
+      revealLandedCommit(target); return;
+    }
+    const pulse=document.createElement("div");
+    pulse.className="commit-pulse";
+    pulse.style.left=ox+"px"; pulse.style.top=oy+"px";
+    document.body.appendChild(pulse);
+
+    // grow the connecting edge while the pulse travels
+    if(target.edge) growEdge(target.edge);
+
+    // next frame: add transition + move to destination, shrinking slightly
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(myToken!==seqToken){ pulse.remove(); return; }
+      pulse.classList.add("fly");
+      pulse.style.left=dest.x+"px";
+      pulse.style.top=dest.y+"px";
+      pulse.style.transform="translate(-50%,-50%) scale(.7)";
+    }));
+
+    // 3) on arrival: reveal the real node, remove the pulse
+    setTimeout(()=>{
+      if(myToken!==seqToken){ pulse.remove(); return; }
+      revealLandedCommit(target);
+      pulse.style.transform="translate(-50%,-50%) scale(1.6)";
+      pulse.style.opacity="0";
+      setTimeout(()=>pulse.remove(),260);
+    },640);
+  }, 340 + staged.length*50);
+}
+
+function revealLandedCommit(target){
+  target.node.classList.add("shown","pulse");
+  if(target.hash) target.hash.classList.add("shown");
+  if(target.headTag){
+    const h=target.headTag;
+    h.classList.add("shown");
+    if(h._rideDy!=null){
+      // Tween the group's transform ATTRIBUTE (reliable on SVG, unlike CSS
+      // transforms across a letterboxed viewBox). Ease from 0 → _rideDy.
+      const dist=h._rideDy, dur=500, t0=performance.now();
+      const ease=p=>1-Math.pow(1-p,3);            // easeOutCubic
+      const tick=now=>{
+        if(seqToken!==h._token){ return; }        // cancelled by a new command
+        const p=Math.min(1,(now-t0)/dur);
+        h.setAttribute("transform",`translate(0 ${dist*ease(p)})`);
+        if(p<1){ requestAnimationFrame(tick); }
+        else { finalizeCommitChainState(h); }
+      };
+      requestAnimationFrame(tick);
+    }else{
+      finalizeCommitChainState(h);
+    }
+  }
+}
+
+/* After the commit fly-in settles, re-home HEAD to the tip with a zeroed
+   transform and register chain state, so an incremental commit→branch step
+   has a clean, consistent base to build on. */
+function finalizeCommitChainState(h){
+  if(seqToken!==h._token) return;             // a newer command took over
+  const pts=chainPts(), tip=pts[pts.length-1];
+  rehomeTag(h, tip.x-14, tip.y-24);           // home = tip, transform back to 0
+  h.classList.remove("lbl-in"); h.classList.add("fade-in","shown");
+  graphState={ step:"commit", refs:{ headTag:h, headOn:"main", branch:null, merge:null } };
+}
+
+/* ============================================================
+   Smooth repo graph.
+   Everything is built hidden, then revealed in sequence:
+   edges "grow" by animating stroke-dashoffset from full length → 0,
+   nodes + labels ease in staggered. A token cancels a stale
+   sequence if you click another command mid-animation.
+   ============================================================ */
+const NS="http://www.w3.org/2000/svg";
+let seqToken=0;
+let pendingCommit=null;   // set by drawGraph when a commit fly-in is expected
+const HASHES=["root","a13f2c","9e0b71","c4d82a","1f7e5d","b6a390"];
+
+function mkEdge(g,d,cls){
+  const p=document.createElementNS(NS,"path");
+  p.setAttribute("d",d);p.setAttribute("class","edge "+(cls||""));
+  g.appendChild(p);
+  const len=p.getTotalLength();
+  // dasharray a touch longer than the path and offset by the same, so even
+  // near-flat curves (the pull/push arc) are fully hidden before growing —
+  // no sliver of the finished line flashing first.
+  const hide=len+2;
+  p.setAttribute("stroke-dasharray",hide);
+  p.setAttribute("stroke-dashoffset",hide);
+  p._len=hide;
+  return p;
+}
+function growEdge(p){
+  // Drive growth with a one-shot keyframe that is guaranteed to start
+  // from the hidden offset — no flash of the finished state.
+  p.style.setProperty("--len",p._len);
+  p.classList.add("growing");
+}
+
+/* Ride a glowing packet along an edge path, following its true curve via
+   getPointAtLength. Used for pull/push to show data flowing in/out. The
+   dot is an SVG circle appended to the graph so it shares the coordinate
+   space (no screen-pixel math needed). Cancels if the command changes. */
+function travelAlongEdge(edge, opts={}){
+  if(!edge) return;
+  const g=document.getElementById("graph");
+  const total=edge.getTotalLength();
+  const myToken=seqToken;
+  const dur=opts.dur||600;
+  const color=opts.color||"var(--blue)";
+  const dot=document.createElementNS(NS,"circle");
+  dot.setAttribute("r",4.5);
+  dot.setAttribute("class","packet");
+  dot.style.fill=color;
+  g.appendChild(dot);
+  const t0=performance.now();
+  const ease=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;   // easeInOutQuad
+  const tick=now=>{
+    if(seqToken!==myToken){ dot.remove(); return; }
+    const p=Math.min(1,(now-t0)/dur);
+    const pt=edge.getPointAtLength(total*ease(p));
+    dot.setAttribute("cx",pt.x); dot.setAttribute("cy",pt.y);
+    if(p<1){ requestAnimationFrame(tick); }
+    else { dot.style.opacity="0"; setTimeout(()=>dot.remove(),200); }
+  };
+  requestAnimationFrame(tick);
+}
+
+function mkNode(g,x,y,cls){
+  const c=document.createElementNS(NS,"circle");
+  c.setAttribute("cx",x);c.setAttribute("cy",y);c.setAttribute("r",7);
+  c.setAttribute("class","commit node-in "+(cls||""));
+  g.appendChild(c);return c;
+}
+function mkHash(g,x,y,text){
+  const t=document.createElementNS(NS,"text");
+  t.setAttribute("x",x);t.setAttribute("y",y+3);
+  t.setAttribute("class","hashlbl lbl-in");t.textContent=text;
+  g.appendChild(t);return t;
+}
+function mkTag(g,x,y,label,cls){
+  const grp=document.createElementNS(NS,"g");grp.setAttribute("class",cls+" lbl-in");
+  const w=label.length*6.4+12;
+  const r=document.createElementNS(NS,"rect");
+  r.setAttribute("x",x);r.setAttribute("y",y);r.setAttribute("width",w);
+  r.setAttribute("height",16);r.setAttribute("rx",4);grp.appendChild(r);
+  const t=document.createElementNS(NS,"text");
+  t.setAttribute("x",x+6);t.setAttribute("y",y+12);t.textContent=label;grp.appendChild(t);
+  g.appendChild(grp);return grp;
+}
+const show=el=>el.classList.add("shown");
+
+function drawGraph(count,opts={}){
+  const g=document.getElementById("graph");g.innerHTML="";
+  seqToken++; const myToken=seqToken;
+  const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  const x=100, baseY=150, gap=28;
+  const pts=[];
+  for(let i=0;i<count;i++) pts.push({x, y:baseY-i*gap});
+
+  // --- build main spine (edges first so nodes sit on top) ---
+  const mainEdges=[];
+  for(let i=1;i<pts.length;i++){
+    mainEdges.push(mkEdge(g,`M${pts[i-1].x} ${pts[i-1].y} L${pts[i].x} ${pts[i].y}`,"hot"));
+  }
+  const mainNodes=pts.map((p,i)=>mkNode(g,p.x,p.y,i===0?"root":""));
+  const hashLbls=pts.map((p,i)=>mkHash(g,p.x+14,p.y,HASHES[i]||"commit"));
+
+  const top=pts[pts.length-1];
+  // main branch name label near second-from-top
+  let mainNameLbl=null;
+  if(count>=2){ mainNameLbl=mkTag(g,pts[1].x-52,pts[1].y-8,"main","branchtag"); mainNameLbl.querySelector("rect").setAttribute("fill","var(--green)"); }
+
+  // --- branch (feature line arcing up-right from the current tip) ---
+  let bEdge,bNode,bTag,bHead;
+  const bx=x+78, by=top.y-gap;              // feature tip: up and to the right
+  if(opts.branch){
+    // smooth arc out of the tip, bending right then up to the feature node
+    bEdge=mkEdge(g,`M${top.x} ${top.y} C ${top.x+46} ${top.y}, ${bx} ${by+18}, ${bx} ${by}`,"feat");
+    bNode=mkNode(g,bx,by,"feat");
+    bTag=mkTag(g,bx+12,by-8,"feature","branchtag");
+    if(opts.headOn==="branch") bHead=mkTag(g,bx-14,by+20,"HEAD","headtag");
+  }
+
+  // --- merge (feature curves back into a new commit on main) ---
+  let mEdge,mNode,mHead,mainSpur;
+  if(opts.merge){
+    const my={x, y:top.y-gap};
+    mainSpur=mkEdge(g,`M${top.x} ${top.y} L${my.x} ${my.y}`,"hot");
+    mEdge=mkEdge(g,`M${bx} ${by} C ${bx-20} ${by-16}, ${x+30} ${my.y}, ${x} ${my.y}`,"feat");
+    mNode=mkNode(g,my.x,my.y,"head-c");
+    mHead=mkTag(g,my.x-14,my.y-24,"HEAD","headtag");
+  }
+
+  // --- HEAD tag on main top (when not on branch / not merging) ---
+  let headTag;
+  if(count>0 && !opts.headOn && !opts.merge){
+    if(opts.flyCommit && pts.length>=2){
+      // Start HEAD on the PARENT commit; it will ride up to the new commit
+      // when the snapshot lands. Shown immediately (it was already there).
+      const parent=pts[pts.length-2];
+      headTag=mkTag(g,parent.x-14,parent.y-24,"HEAD","headtag");
+      headTag.classList.remove("lbl-in");        // avoid transform:none from lblIn keyframe
+      headTag.classList.add("fade-in");          // opacity-only reveal
+      headTag.setAttribute("transform","translate(0 0)");  // baseline for the JS tween
+      headTag._rideDy=(top.y-parent.y);          // how far up to travel (negative = up)
+      headTag._token=myToken;                    // cancel tween if command changes
+    }else{
+      headTag=mkTag(g,top.x-14,top.y-24,"HEAD","headtag");
+    }
+  }
+  // fresh-commit highlight
+  if(opts.commitPop && mainNodes.length){
+    const nd=mainNodes[mainNodes.length-1];
+    nd.classList.add("head-c");nd.classList.add("pulse");
+  }
+
+  // Expose the top commit for the commit fly-in (staging snapshot lands here).
+  pendingCommit=null;
+  if(opts.flyCommit && mainNodes.length){
+    const nd=mainNodes[mainNodes.length-1];
+    nd.classList.add("head-c");
+    pendingCommit={
+      node:nd,
+      edge:mainEdges[mainEdges.length-1]||null,
+      hash:hashLbls[hashLbls.length-1]||null,
+      x:top.x, y:top.y
+    };
+  }
+
+  // --- remote sync arc ---
+  // The blue remote node sits to the right of HEAD. For PULL, work comes
+  // down from the remote → HEAD, so the arc is drawn starting at the remote.
+  // For PUSH, it's the reverse (HEAD → remote).
+  let rEdge,rLbl,rNode;
+  if(opts.toRemote||opts.fromRemote){
+    const hx=top.x+16, hy=top.y;          // near HEAD
+    const rx=top.x+76, ry=top.y;          // remote node
+    const dir=opts.toRemote?-1:1;         // arc bulge direction
+    if(opts.fromRemote){
+      // PULL: path starts at the remote so growth travels toward HEAD
+      rEdge=mkEdge(g,`M${rx} ${ry} q -26 ${dir*18} -${rx-hx} 0`,"remote");
+    }else{
+      // PUSH: path starts near HEAD, travels out to the remote
+      rEdge=mkEdge(g,`M${hx} ${hy} q 34 ${dir*18} ${rx-hx} 0`,"remote");
+    }
+    rNode=mkNode(g,rx,ry,""); rNode.style.stroke="var(--blue)";
+    rLbl=mkHash(g,top.x+24,top.y-16,opts.toRemote?"push →":"← pull");
+    rLbl.style.fill="var(--blue)";
+  }
+
+  /* ---------- sequence the reveal ---------- */
+  if(reduce){
+    // no motion: reveal everything instantly
+    [...g.querySelectorAll(".edge")].forEach(e=>e.style.strokeDashoffset=0);
+    [...g.querySelectorAll(".node-in,.lbl-in")].forEach(show);
+    return;
+  }
+  const step=(fn,delay)=>setTimeout(()=>{ if(myToken===seqToken) fn(); },delay);
+  let t=60;
+  const hold=opts.flyCommit;                 // top commit revealed later by the fly-in
+  const lastIdx=pts.length-1;
+  // root first
+  if(mainNodes[0]) step(()=>show(mainNodes[0]),t); step(()=>hashLbls[0]&&show(hashLbls[0]),t+120);
+  // then each main edge grows, its node eases in (skip the very top pair if holding)
+  for(let i=1;i<pts.length;i++){
+    if(hold && i===lastIdx) continue;        // leave the top commit + its edge for the pulse
+    t+=260;
+    step(()=>growEdge(mainEdges[i-1]),t);
+    step(()=>{show(mainNodes[i]);show(hashLbls[i]);},t+260);
+  }
+  if(mainNameLbl) step(()=>show(mainNameLbl),t+120);
+  // branch grows out
+  if(opts.branch){ t+=340; step(()=>growEdge(bEdge),t);
+    step(()=>{show(bNode);show(bTag); if(bHead)show(bHead);},t+300); }
+  // merge sweeps in
+  if(opts.merge){ t+=360;
+    step(()=>{growEdge(mainSpur);growEdge(mEdge);},t);
+    step(()=>{show(mNode);show(mHead);},t+320); }
+  // head tag: normally revealed at the top; in flyCommit it's already on the
+  // parent and shown right away, then rides up when the snapshot lands.
+  if(headTag){
+    if(opts.flyCommit) step(()=>show(headTag),t+120);
+    else step(()=>show(headTag),t+180);
+  }
+  if(pendingCommit) pendingCommit.headTag=headTag;
+  // remote sync
+  if(rEdge){
+    t+=340;
+    const litRemote=()=>document.getElementById("remote").classList.add("lit");
+    if(opts.fromRemote){
+      // PULL: show the remote circle first (light the box as it appears),
+      // then draw the line down to HEAD with a packet riding in.
+      step(()=>{show(rNode);show(rLbl);litRemote();},t);
+      step(()=>{ growEdge(rEdge); travelAlongEdge(rEdge,{dur:640}); },t+240);
+    }else{
+      // PUSH: draw the line out from HEAD with a packet flowing to the
+      // remote, which lands (and lights the box) at the end.
+      step(()=>{ show(rLbl); growEdge(rEdge); travelAlongEdge(rEdge,{dur:640}); },t);
+      step(()=>{ show(rNode); litRemote(); },t+560);
+    }
+  }
+
+  // --- capture chain state so later incremental steps can mutate the graph ---
+  if(opts.chainStep){
+    const ht = headTag||bHead||mHead||null;
+    if(ht){
+      // Re-home the HEAD tag to the MAIN TIP position with a zeroed transform,
+      // so every incremental ride can express targets as offsets from the tip.
+      // (commit's fly-in drew it at the parent with a translate; branch/switch/
+      //  merge full-draws may have drawn it elsewhere — normalize them all.)
+      const tip=pts[pts.length-1];
+      rehomeTag(ht, tip.x-14, tip.y-24);
+      ht.classList.remove("lbl-in");
+      ht.classList.add("fade-in","shown");
+      // set transform to reflect where HEAD actually is for this step
+      let off={x:0,y:0};
+      if(opts.chainStep==="switch"){ const bg=branchGeom(tip); off={x:bg.bx-tip.x, y:bg.by-tip.y}; }
+      else if(opts.chainStep==="merge"){ off={x:0, y:-GEO.gap}; }
+      ht.setAttribute("transform",`translate(${off.x} ${off.y})`);
+    }
+    const refs={
+      headTag: ht,
+      headOn: opts.chainStep==="switch" ? "feature"
+            : opts.chainStep==="merge" ? "merge" : "main",
+      branch: opts.branch ? {edge:bEdge,node:bNode,tag:bTag} : null,
+      merge:  opts.merge  ? {spur:mainSpur,edge:mEdge,node:mNode} : null,
+    };
+    graphState={ step:opts.chainStep, refs };
+  }else{
+    graphState={ step:null, refs:null };   // outside the chain → no incremental base
+  }
+}
+
+/* Move a tag group's home position (its rect+text x/y) and zero any transform.
+   Lets us express all subsequent movement as transforms from a known origin. */
+function rehomeTag(grp, x, y){
+  const rect=grp.querySelector("rect"), text=grp.querySelector("text");
+  if(rect){ rect.setAttribute("x",x); rect.setAttribute("y",y); }
+  if(text){ text.setAttribute("x",x+6); text.setAttribute("y",y+12); }
+  grp.setAttribute("transform","translate(0 0)");
+}
+
+/* ============================================================
+   Incremental chain: commit → branch → switch → merge.
+   When the user moves between ADJACENT steps of this chain, we
+   animate only the delta on the existing graph instead of wiping
+   and rebuilding. Any non-adjacent move falls back to a full
+   drawGraph (the normal reset). Works forward and backward.
+
+   graphState holds live references to the SVG pieces created by
+   the last full draw of a chain command, so a later incremental
+   step can mutate just what changed.
+   ============================================================ */
+const CHAIN=["commit","branch","switch","merge"];   // ordered chain steps
+const chainIndexOf=verb=>CHAIN.indexOf(verb);
+
+let graphState={ step:null, refs:null };   // step: verb string; refs: element handles
+
+/* geometry shared by full-draw and incremental steps (must match drawGraph) */
+const GEO={ x:100, baseY:150, gap:28 };
+function chainPts(){
+  // commit chain always sits on a 3-commit main spine (root, a13f2c, 9e0b71)
+  const {x,baseY,gap}=GEO, pts=[];
+  for(let i=0;i<3;i++) pts.push({x, y:baseY-i*gap});
+  return pts;
+}
+function branchGeom(top){ return { bx:GEO.x+78, by:top.y-GEO.gap }; }
+
+/* Build the feature branch (violet line + node + tag) on the existing graph.
+   Returns refs. Animates the line growing out. */
+function addFeatureBranch(animate=true){
+  const g=document.getElementById("graph");
+  const pts=chainPts(), top=pts[2];
+  const {bx,by}=branchGeom(top);
+  const edge=mkEdge(g,`M${top.x} ${top.y} C ${top.x+46} ${top.y}, ${bx} ${by+18}, ${bx} ${by}`,"feat");
+  const node=mkNode(g,bx,by,"feat");
+  const tag=mkTag(g,bx+12,by-8,"feature","branchtag");
+  if(animate){
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      growEdge(edge);
+      setTimeout(()=>{ show(node); show(tag); },300);
+    }));
+  }else{ edge.style.strokeDashoffset=0; show(node); show(tag); }
+  return {edge,node,tag};
+}
+
+/* Ride an existing HEAD tag group by tweening its transform. The ride is
+   expressed as an absolute target transform (tx,ty) so it composes cleanly
+   regardless of where the tag currently sits. Callers pass the target offset
+   relative to the tag's ORIGINAL drawn position. */
+function rideHeadToOffset(headTag, tx, ty){
+  if(!headTag) return;
+  const cur=parseTranslate(headTag.getAttribute("transform"));
+  const fromX=cur.x, fromY=cur.y;
+  const dur=500, t0=performance.now(), tok=seqToken;
+  const ease=p=>1-Math.pow(1-p,3);
+  const tick=now=>{
+    if(seqToken!==tok) return;
+    const p=Math.min(1,(now-t0)/dur), e=ease(p);
+    const nx=fromX+(tx-fromX)*e, ny=fromY+(ty-fromY)*e;
+    headTag.setAttribute("transform",`translate(${nx} ${ny})`);
+    if(p<1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function parseTranslate(str){
+  if(!str) return {x:0,y:0};
+  const m=str.match(/translate\(\s*(-?[\d.]+)[ ,]+(-?[\d.]+)\s*\)/);
+  return m?{x:parseFloat(m[1]),y:parseFloat(m[2])}:{x:0,y:0};
+}
+
+/* Entry point: attempt an incremental step. Returns true if handled. */
+function tryChainStep(fromVerb, toVerb){
+  const a=chainIndexOf(fromVerb), b=chainIndexOf(toVerb);
+  if(a<0||b<0) return false;               // one side isn't in the chain
+  if(Math.abs(a-b)!==1) return false;      // not adjacent → full rebuild
+  if(graphState.step!==fromVerb||!graphState.refs) return false; // state stale
+  incrementalChainStep(fromVerb,toVerb);
+  return true;
+}
+
+function incrementalChainStep(from,to){
+  seqToken++;                              // own the animation
+  const refs=graphState.refs;
+  const pts=chainPts(), top=pts[2];
+  const {bx,by}=branchGeom(top);
+  const mergeY=top.y-GEO.gap;              // merge commit sits one gap above tip
+  const featOff={x:bx-top.x, y:by-top.y};  // HEAD offset when on feature
+  const mergeOff={x:0, y:mergeY-top.y};    // HEAD offset when on merge node
+
+  const key=from+"→"+to;
+  switch(key){
+    case "commit→branch": {
+      const b=addFeatureBranch(true);      // grow feature line; HEAD stays on tip
+      refs.branch=b;
+      break;
+    }
+    case "branch→commit": {
+      retractFeature(refs);                // remove feature line
+      break;
+    }
+    case "branch→switch": {
+      rideHeadToOffset(refs.headTag, featOff.x, featOff.y);   // tip → feature
+      refs.headOn="feature";
+      break;
+    }
+    case "switch→branch": {
+      rideHeadToOffset(refs.headTag, 0, 0);                   // feature → tip
+      refs.headOn="main";
+      break;
+    }
+    case "switch→merge": {
+      const g=document.getElementById("graph");
+      const spur=mkEdge(g,`M${top.x} ${top.y} L${top.x} ${mergeY}`,"hot");
+      const mEdge=mkEdge(g,`M${bx} ${by} C ${bx-20} ${by-16}, ${top.x+30} ${mergeY}, ${top.x} ${mergeY}`,"feat");
+      const mNode=mkNode(g,top.x,mergeY,"head-c");
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        growEdge(spur); growEdge(mEdge);
+        setTimeout(()=>{
+          show(mNode);
+          rideHeadToOffset(refs.headTag, mergeOff.x, mergeOff.y);  // → merge node
+          refs.headOn="merge";
+        },340);
+      }));
+      refs.merge={spur,edge:mEdge,node:mNode};
+      break;
+    }
+    case "merge→switch": {
+      if(refs.merge){
+        const {spur,edge,node}=refs.merge;
+        node.classList.remove("shown");
+        [spur,edge].forEach(e=>{ if(e){ e.classList.remove("growing"); e.style.strokeDashoffset=e._len; }});
+        setTimeout(()=>{ [spur,edge,node].forEach(el=>el&&el.remove()); },400);
+        refs.merge=null;
+      }
+      rideHeadToOffset(refs.headTag, featOff.x, featOff.y);   // merge → feature
+      refs.headOn="feature";
+      break;
+    }
+  }
+  graphState.step=to;
+}
+
+function retractFeature(refs){
+  const b=refs.branch;
+  if(!b) return;
+  if(b.node) b.node.classList.remove("shown");
+  if(b.tag) b.tag.classList.remove("shown");
+  if(b.edge){ b.edge.classList.remove("growing"); b.edge.style.strokeDashoffset=b.edge._len; }
+  setTimeout(()=>{ [b.edge,b.node,b.tag].forEach(el=>el&&el.remove()); },400);
+  refs.branch=null;
+}
+
+/* ---------- select ---------- */
+let current=0;
+let currentVerb=null;
+function select(i){
+  const c=COMMANDS[i];
+  const prevVerb=currentVerb;
+  current=i; currentVerb=c.verb;
+  // common UI updates (list highlight, terminal, explanation, lighting)
+  [...listEl.querySelectorAll(".cmd")].forEach((el,idx)=>el.classList.toggle("active",idx===i));
+  document.getElementById("termCode").textContent=c.cmd;
+  document.getElementById("termNote").textContent=c.title;
+  const prog=document.getElementById("prog");prog.innerHTML="<span></span>";
+  const lit=c.lit||[];
+  document.getElementById("zWork").classList.toggle("lit",lit.includes("work"));
+  document.getElementById("zStage").classList.toggle("lit",lit.includes("stage"));
+  document.getElementById("zStash").classList.toggle("lit",lit.includes("stash"));
+  // remote is lit by the pull/push animation itself (when the arc reaches it),
+  // not on click — so always clear it here; the sequence turns it on.
+  document.getElementById("remote").classList.remove("lit");
+  document.getElementById("exTitle").textContent=c.cmd;
+  document.getElementById("exBody").textContent=c.body;
+  document.getElementById("exFlow").innerHTML=(c.flow||[]).map(x=>`<span>${x}</span>`).join(" ");
+  document.getElementById("counter").textContent=`${c.n} / ${String(COMMANDS.length).padStart(2,"0")}`;
+
+  // Try an incremental chain transition (commit↔branch↔switch↔merge).
+  // These four keep files empty, so clear them without disturbing the graph.
+  if(prevVerb && tryChainStep(prevVerb, c.verb)){
+    setFiles([],[]);            // chain commands show no files
+    return;                     // handled incrementally — skip full render
+  }
+
+  // Otherwise, full render (normal reset).
+  seqToken++;
+  c.render();
+}
+
+/* ---------- keyboard nav ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowDown"||e.key==="ArrowRight"){select((current+1)%COMMANDS.length);e.preventDefault();}
+  if(e.key==="ArrowUp"||e.key==="ArrowLeft"){select((current-1+COMMANDS.length)%COMMANDS.length);e.preventDefault();}
+});
+
+/* ---------- init ---------- */
+buildList();
+select(0);
+</script>
+@endverbatim
+</div>

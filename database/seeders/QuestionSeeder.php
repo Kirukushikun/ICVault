@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Enums\Difficulty;
-use App\Enums\QuestionType;
-use App\Models\Category;
-use App\Models\Question;
+use App\Tools\Quiz\Enums\Difficulty;
+use App\Tools\Quiz\Enums\QuestionType;
+use App\Tools\Quiz\Models\Category;
+use App\Tools\Quiz\Models\Question;
 use Illuminate\Database\Seeder;
 
 class QuestionSeeder extends Seeder

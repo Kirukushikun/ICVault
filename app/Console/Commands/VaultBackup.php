@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\PoolExportService;
+use App\Tools\Quiz\Services\PoolExportService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 

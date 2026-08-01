@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use App\Models\Tip;
+use App\Tools\Quiz\Models\Category;
+use App\Tools\Quiz\Models\Tip;
 use Illuminate\Database\Seeder;
 
 class TipSeeder extends Seeder
