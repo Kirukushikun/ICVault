@@ -23,6 +23,8 @@ final readonly class Tool
         public bool $enabled,
         public ?string $summaryProvider,
         public ?string $settingsRoute,
+        /** @var array<int, NavItem> */
+        public array $navItems,
     ) {}
 
     /** @param array<string, mixed> $config */
@@ -40,7 +42,17 @@ final readonly class Tool
             enabled: $config['enabled'] ?? true,
             summaryProvider: $config['summary'] ?? null,
             settingsRoute: $config['settings_route'] ?? null,
+            navItems: array_map(
+                fn (array $item) => NavItem::fromConfig($item),
+                $config['nav'] ?? []
+            ),
         );
+    }
+
+    /** Whether this tool exposes inner pages worth showing in the sidebar. */
+    public function hasNav(): bool
+    {
+        return $this->navItems !== [];
     }
 
     /** Whether this tool owns a settings page of its own. */

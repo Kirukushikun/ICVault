@@ -35,6 +35,15 @@ return [
         'status' => 'active',
         'enabled' => true,
         'summary' => QuizTool::class,
+
+        // Inner pages, shown nested in the sidebar while this tool is open.
+        'nav' => [
+            ['label' => 'Dashboard', 'route' => 'quiz.dashboard', 'icon' => '◆'],
+            ['label' => 'Quiz Session', 'route' => 'quiz.session', 'icon' => '▣'],
+            ['label' => 'Import & Logs', 'route' => 'quiz.import', 'icon' => '⇩'],
+            ['label' => 'Library', 'route' => 'quiz.library', 'icon' => '▤'],
+            ['label' => 'Quiz Settings', 'route' => 'quiz.settings', 'icon' => '⚙'],
+        ],
     ],
 
     'visualizer' => [

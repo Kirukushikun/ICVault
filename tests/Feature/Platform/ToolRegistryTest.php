@@ -71,6 +71,30 @@ class ToolRegistryTest extends TestCase
         $this->assertTrue($registry->find('example')->hasSettings());
     }
 
+    public function test_a_tool_without_nav_entries_reports_no_inner_pages(): void
+    {
+        $registry = $this->registry(['example' => $this->definition()]);
+
+        $this->assertFalse($registry->find('example')->hasNav());
+        $this->assertSame([], $registry->find('example')->navItems);
+    }
+
+    public function test_nav_entries_are_parsed_into_nav_items(): void
+    {
+        $registry = $this->registry([
+            'example' => $this->definition([
+                'nav' => [['label' => 'Inbox', 'route' => 'hub', 'icon' => '✉']],
+            ]),
+        ]);
+
+        $tool = $registry->find('example');
+
+        $this->assertTrue($tool->hasNav());
+        $this->assertCount(1, $tool->navItems);
+        $this->assertSame('Inbox', $tool->navItems[0]->label);
+        $this->assertSame('✉', $tool->navItems[0]->icon);
+    }
+
     public function test_find_returns_null_for_an_unknown_key(): void
     {
         $this->assertNull($this->registry([])->find('nope'));

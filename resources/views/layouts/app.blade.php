@@ -43,6 +43,19 @@
                     <a href="{{ $tool->url() }}" wire:navigate class="nav-item {{ $tool->isCurrent() ? 'active' : '' }}">
                         <span class="w-4 text-center opacity-90">{{ $tool->icon }}</span> {{ $tool->name }}
                     </a>
+
+                    {{-- A tool's own pages, revealed only while that tool is open. --}}
+                    @if ($tool->isCurrent() && $tool->hasNav())
+                        <div class="flex flex-col gap-0.5 ml-3 pl-3 border-l border-border
+                                    max-[820px]:flex-row max-[820px]:ml-0 max-[820px]:pl-0 max-[820px]:border-l-0">
+                            @foreach ($tool->navItems as $item)
+                                <a href="{{ $item->url() }}" wire:navigate
+                                   class="nav-item py-1.5 text-[12px] {{ $item->isCurrent() ? 'text-white bg-white/5' : '' }}">
+                                    <span class="w-3.5 text-center text-[11px] opacity-80">{{ $item->icon }}</span> {{ $item->label }}
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
                 @endforeach
             </div>
 
