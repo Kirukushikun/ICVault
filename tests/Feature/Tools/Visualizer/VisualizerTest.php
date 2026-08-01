@@ -44,6 +44,28 @@ class VisualizerTest extends TestCase
         $this->get(route('visualizer.guide', 'does-not-exist'))->assertNotFound();
     }
 
+    /** A mistyped logo path renders an invisible broken image, so assert the file. */
+    public function test_every_guide_logo_points_at_a_file_that_exists(): void
+    {
+        foreach (app(GuideLibrary::class)->all() as $slug => $guide) {
+            if (! isset($guide['logo'])) {
+                continue;
+            }
+
+            $this->assertFileExists(
+                public_path($guide['logo']),
+                "Guide [{$slug}] references a logo that is not in public/."
+            );
+        }
+    }
+
+    public function test_the_git_guide_renders_the_git_logo_rather_than_a_placeholder_glyph(): void
+    {
+        $this->get(route('visualizer.guide', 'git-commands'))
+            ->assertOk()
+            ->assertSee('/images/git-logo.png', false);
+    }
+
     public function test_every_registered_guide_has_a_backing_view(): void
     {
         $guides = app(GuideLibrary::class);

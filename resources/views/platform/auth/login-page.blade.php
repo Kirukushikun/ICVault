@@ -1,7 +1,10 @@
 <div class="w-full max-w-[380px]">
-    <div class="flex flex-col items-center gap-1 mb-8">
-        <div class="font-display text-2xl font-bold tracking-wide">IC<span class="text-red">Vault</span></div>
-        <div class="text-[9.5px] tracking-[0.14em] uppercase text-text-muted">Knowledge Quiz</div>
+    <div class="flex flex-col items-center gap-2.5 mb-8">
+        <img src="{{ asset('images/ic-logo.png') }}" alt="ICVault" class="w-14 h-14 object-contain" />
+        <div class="flex flex-col items-center gap-1">
+            <div class="font-display text-2xl font-bold tracking-wide leading-none">IC<span class="text-red">Vault</span></div>
+            <div class="text-[9.5px] tracking-[0.14em] uppercase text-text-muted">Personal Platform</div>
+        </div>
     </div>
 
     <form wire:submit="login" class="card p-7 flex flex-col gap-4">

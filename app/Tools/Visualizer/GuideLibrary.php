@@ -21,7 +21,8 @@ final class GuideLibrary
             'eyebrow' => 'Developer Field Guide 02',
             'blurb' => 'One continuous workflow — from init through push — with the working tree, staging area, and remote drawn as you step through each command.',
             'steps' => 10,
-            'accent' => '#C3073F',
+            'accent' => '#F05033',
+            'logo' => 'images/git-logo.png',
         ],
     ];
 

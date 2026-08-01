@@ -7,6 +7,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+        <link rel="icon" href="{{ asset('images/ic-icon.ico') }}" sizes="any">
+
         <title>{{ $title ?? 'ICVault' }}</title>
 
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=League+Gothic&family=League+Spartan:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -18,10 +20,13 @@
     <body class="min-h-screen flex max-[820px]:flex-col text-white">
         <div class="w-[240px] shrink-0 bg-bg-secondary border-r border-border flex flex-col p-[26px_16px] gap-6 sticky top-0 h-screen
                     max-[820px]:w-full max-[820px]:h-auto max-[820px]:flex-row max-[820px]:items-center max-[820px]:static max-[820px]:overflow-x-auto">
-            <div class="flex flex-col gap-0.5 px-2">
-                <div class="font-display text-xl font-bold tracking-wide">IC<span class="text-red">Vault</span></div>
-                <div class="text-[9.5px] tracking-[0.14em] uppercase text-text-muted">Personal Platform</div>
-            </div>
+            <a href="{{ route('hub') }}" wire:navigate class="flex items-center gap-2.5 px-2 no-underline text-white">
+                <img src="{{ asset('images/ic-logo.png') }}" alt="" class="w-7 h-7 object-contain shrink-0" />
+                <div class="flex flex-col gap-0.5">
+                    <div class="font-display text-xl font-bold tracking-wide leading-none">IC<span class="text-red">Vault</span></div>
+                    <div class="text-[9.5px] tracking-[0.14em] uppercase text-text-muted">Personal Platform</div>
+                </div>
+            </a>
 
             {{-- Overview --}}
             <div class="flex flex-col gap-1 max-[820px]:flex-row">

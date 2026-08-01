@@ -27,6 +27,21 @@ class SettingsPageTest extends TestCase
         $this->actingAs($this->user);
     }
 
+    /** Brand assets are referenced by every layout; a missing file is silent. */
+    public function test_the_brand_logo_and_favicon_exist_in_public(): void
+    {
+        $this->assertFileExists(public_path('images/ic-logo.png'));
+        $this->assertFileExists(public_path('images/ic-icon.ico'));
+    }
+
+    public function test_the_shell_renders_the_brand_logo_and_favicon(): void
+    {
+        $this->get(route('settings'))
+            ->assertOk()
+            ->assertSee('images/ic-logo.png', false)
+            ->assertSee('images/ic-icon.ico', false);
+    }
+
     public function test_it_shows_the_signed_in_users_details(): void
     {
         Livewire::test(SettingsPage::class)

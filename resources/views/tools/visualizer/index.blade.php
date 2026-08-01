@@ -17,8 +17,14 @@
                       hover:-translate-y-[3px] hover:border-[color-mix(in_srgb,var(--accent)_38%,transparent)]
                       hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
 
-                <div class="text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--accent)] mb-2.5">
-                    {{ $guide['eyebrow'] }}
+                <div class="flex items-start justify-between gap-3 mb-2.5">
+                    <div class="text-[9px] font-bold tracking-[0.2em] uppercase text-[var(--accent)]">
+                        {{ $guide['eyebrow'] }}
+                    </div>
+                    @isset($guide['logo'])
+                        <img src="{{ asset($guide['logo']) }}" alt=""
+                             class="w-8 h-8 object-contain shrink-0 -mt-1 opacity-90 group-hover:opacity-100 transition-opacity" />
+                    @endisset
                 </div>
 
                 <div class="font-display text-[20px] font-bold tracking-[0.5px] leading-tight">{{ $guide['title'] }}</div>

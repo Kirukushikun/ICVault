@@ -54,12 +54,14 @@ body{
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .glyph{
-  width:52px;height:52px;flex:none;border-radius:12px;
-  background:linear-gradient(135deg,var(--amber-hot),var(--amber));
-  display:grid;place-items:center;box-shadow:0 6px 24px rgba(255,106,0,.35);
+  /* Git's mark is already an orange diamond — no tile behind it, and the glow
+     comes from drop-shadow so it follows the logo's shape, not a square. */
+  width:58px;height:58px;flex:none;
+  display:grid;place-items:center;
   transform:rotate(-4deg);
+  filter:drop-shadow(0 6px 20px rgba(240,80,50,.4));
 }
-.glyph svg{width:30px;height:30px}
+.glyph img{width:100%;height:100%;object-fit:contain}
 h1{
   font-family:'JetBrains Mono',monospace;font-weight:800;
   font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.02em;
@@ -275,8 +277,8 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
   </div>
 
   <div class="masthead">
-    <div class="glyph" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 2 8v8l10 6 10-6V8L12 2Z" stroke="#0d1117" stroke-width="1.6"/><circle cx="12" cy="12" r="2.4" fill="#0d1117"/><path d="M12 9.6V4M12 14.4V20M9.6 12H4M14.4 12H20" stroke="#0d1117" stroke-width="1.6"/></svg>
+    <div class="glyph">
+      <img src="/images/git-logo.png" alt="Git" />
     </div>
     <div>
       <h1><span class="num">10</span> GIT COMMANDS</h1>
