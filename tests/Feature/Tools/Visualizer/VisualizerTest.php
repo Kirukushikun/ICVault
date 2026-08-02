@@ -18,25 +18,149 @@ class VisualizerTest extends TestCase
         $this->actingAs(User::factory()->create());
     }
 
-    public function test_the_index_lists_published_guides(): void
+    /** @return array<string, array<string, string|int>> */
+    private function guides(): array
     {
-        $this->get(route('visualizer.index'))
-            ->assertOk()
-            ->assertSee('10 Git Commands')
-            ->assertSee('Every developer should know');
+        return app(GuideLibrary::class)->all();
     }
 
-    public function test_a_guide_renders_its_own_full_bleed_page(): void
+    // ---------------------------------------------------------------- index
+
+    public function test_the_index_lists_every_published_guide(): void
     {
-        $response = $this->get(route('visualizer.guide', 'git-commands'));
+        $response = $this->get(route('visualizer.index'))->assertOk();
 
-        $response->assertOk()
-            ->assertSee('GIT COMMANDS', false)
-            ->assertSee('repository terminal', false)
-            ->assertSee('ICVault — 10 Git Commands', false);
+        foreach ($this->guides() as $slug => $guide) {
+            $response->assertSee($guide['title'], false);
+            $response->assertSee(route('visualizer.guide', $slug), false);
+        }
+    }
 
-        // Canvas layout, not the app shell — no sidebar navigation.
-        $response->assertDontSee('Installed Tools');
+    public function test_guides_are_numbered_without_gaps_or_duplicates(): void
+    {
+        $numbers = collect($this->guides())
+            ->map(fn (array $g) => (int) filter_var($g['eyebrow'], FILTER_SANITIZE_NUMBER_INT))
+            ->values()
+            ->sort()
+            ->all();
+
+        $this->assertSame(range(1, count($numbers)), $numbers, 'Field guide numbering has a gap or a repeat.');
+    }
+
+    public function test_each_guide_has_a_distinguishable_accent(): void
+    {
+        $accents = collect($this->guides())->map(fn (array $g) => strtolower($g['accent']));
+
+        $this->assertCount(
+            $accents->unique()->count(),
+            $accents,
+            'Two guides share an accent colour, so their index cards look identical.'
+        );
+    }
+
+    // --------------------------------------------------------------- guides
+
+    public function test_every_guide_renders_full_bleed_outside_the_app_shell(): void
+    {
+        foreach ($this->guides() as $slug => $guide) {
+            $this->get(route('visualizer.guide', $slug))
+                ->assertOk()
+                ->assertSee('ICVault — '.$guide['title'], false)
+                ->assertDontSee('Installed Tools');   // sidebar belongs to the shell
+        }
+    }
+
+    public function test_every_guide_carries_the_platform_header(): void
+    {
+        foreach ($this->guides() as $slug => $guide) {
+            $this->get(route('visualizer.guide', $slug))
+                ->assertOk()
+                ->assertSee('images/ic-logo.png', false)
+                ->assertSee(route('hub'), false)
+                ->assertSee(route('visualizer.index'), false)
+                ->assertSee('Concept Visualizer', false)
+                ->assertSee($guide['title'], false);
+        }
+    }
+
+    /**
+     * The masthead and the index card used to hold separate copies of these
+     * labels, so renumbering a guide meant editing two files and silently
+     * getting it half-right.
+     */
+    public function test_every_guide_reads_its_labels_from_the_library(): void
+    {
+        $index = $this->get(route('visualizer.index'))->assertOk();
+
+        foreach ($this->guides() as $slug => $guide) {
+            $this->get(route('visualizer.guide', $slug))
+                ->assertOk()
+                ->assertSee($guide['eyebrow'], false)
+                ->assertSee($guide['subtitle'], false);
+
+            $index->assertSee($guide['eyebrow'], false);
+        }
+    }
+
+    /** The card's accent and the guide's own palette must be the same colour. */
+    public function test_every_guide_uses_its_own_registered_accent(): void
+    {
+        foreach ($this->guides() as $slug => $guide) {
+            $html = $this->get(route('visualizer.guide', $slug))->assertOk()->getContent();
+
+            $this->assertStringContainsStringIgnoringCase(
+                $guide['accent'],
+                $html,
+                "Guide [{$slug}] is registered as {$guide['accent']} but its stylesheet never uses that colour."
+            );
+        }
+    }
+
+    /**
+     * Ported guides arrived carrying their source palette. Any of these means a
+     * guide is still wearing another product's dark theme instead of ICVault's.
+     */
+    public function test_no_guide_keeps_its_original_page_background(): void
+    {
+        $foreign = ['#0d1117', '#161b22', '#1a0f18', '#2a1826', '#0a0e14', '#111823'];
+
+        foreach ($this->guides() as $slug => $guide) {
+            $html = $this->get(route('visualizer.guide', $slug))->assertOk()->getContent();
+
+            foreach ($foreign as $hex) {
+                $this->assertStringNotContainsStringIgnoringCase(
+                    $hex,
+                    $html,
+                    "Guide [{$slug}] still uses the foreign surface colour {$hex}."
+                );
+            }
+
+            $this->assertStringContainsString('#1A1A1D', $html, "Guide [{$slug}] is not on the ICVault page colour.");
+        }
+    }
+
+    /**
+     * The canvas layout loads Roboto, League Gothic, League Spartan and
+     * JetBrains Mono. Anything else silently falls back to system-ui, which is
+     * how two ported guides ended up not rendering in the face they asked for.
+     */
+    public function test_no_guide_asks_for_a_font_the_layout_does_not_load(): void
+    {
+        $loaded = ['Roboto', 'League Gothic', 'League Spartan', 'JetBrains Mono'];
+
+        foreach ($this->guides() as $slug => $guide) {
+            $html = $this->get(route('visualizer.guide', $slug))->assertOk()->getContent();
+
+            preg_match_all("/font-family:\s*'([^']+)'/", $html, $matches);
+
+            foreach (array_unique($matches[1]) as $family) {
+                $this->assertContains(
+                    $family,
+                    $loaded,
+                    "Guide [{$slug}] asks for '{$family}', which the canvas layout never loads."
+                );
+            }
+        }
     }
 
     /**
@@ -47,58 +171,23 @@ class VisualizerTest extends TestCase
     public function test_links_into_a_guide_do_not_use_wire_navigate(): void
     {
         $html = $this->get(route('visualizer.index'))->assertOk()->getContent();
-        $target = route('visualizer.guide', 'git-commands');
 
         preg_match_all('/<a\b[^>]*>/i', $html, $anchors);
 
-        $guideAnchors = array_values(array_filter(
-            $anchors[0],
-            fn (string $tag) => str_contains($tag, $target)
-        ));
+        foreach (array_keys($this->guides()) as $slug) {
+            $target = route('visualizer.guide', $slug);
 
-        $this->assertNotEmpty($guideAnchors, 'The index does not link to the guide at all.');
+            $guideAnchors = array_values(array_filter(
+                $anchors[0],
+                fn (string $tag) => str_contains($tag, $target)
+            ));
 
-        foreach ($guideAnchors as $tag) {
-            $this->assertStringNotContainsString('wire:navigate', $tag);
+            $this->assertNotEmpty($guideAnchors, "The index does not link to [{$slug}] at all.");
+
+            foreach ($guideAnchors as $tag) {
+                $this->assertStringNotContainsString('wire:navigate', $tag);
+            }
         }
-    }
-
-    public function test_a_guide_carries_the_platform_header_so_it_reads_as_part_of_icvault(): void
-    {
-        $this->get(route('visualizer.guide', 'git-commands'))
-            ->assertOk()
-            ->assertSee('images/ic-logo.png', false)   // brand mark
-            ->assertSee(route('hub'), false)           // back to the platform
-            ->assertSee(route('visualizer.index'), false)
-            ->assertSee('Concept Visualizer', false)   // breadcrumb trail
-            ->assertSee('10 Git Commands', false);     // current guide
-    }
-
-    /**
-     * The masthead and the index card used to hold separate copies of these
-     * labels, so renumbering a guide meant editing two files and silently
-     * getting it half-right.
-     */
-    public function test_the_guide_masthead_reads_its_labels_from_the_library(): void
-    {
-        $guide = app(GuideLibrary::class)->find('git-commands');
-
-        $this->get(route('visualizer.guide', 'git-commands'))
-            ->assertOk()
-            ->assertSee($guide['eyebrow'], false)
-            ->assertSee($guide['subtitle'], false);
-
-        $this->get(route('visualizer.index'))
-            ->assertOk()
-            ->assertSee($guide['eyebrow'], false);
-    }
-
-    public function test_the_guide_uses_the_git_accent_colour(): void
-    {
-        $this->get(route('visualizer.guide', 'git-commands'))
-            ->assertOk()
-            ->assertSee('#f05133', false)
-            ->assertDontSee('#0d1117', false);  // GitHub's canvas, replaced by ICVault's
     }
 
     public function test_an_unknown_guide_slug_returns_404(): void
@@ -106,10 +195,24 @@ class VisualizerTest extends TestCase
         $this->get(route('visualizer.guide', 'does-not-exist'))->assertNotFound();
     }
 
+    // ------------------------------------------------------------- registry
+
+    public function test_every_registered_guide_has_a_backing_view(): void
+    {
+        $guides = app(GuideLibrary::class);
+
+        foreach (array_keys($guides->all()) as $slug) {
+            $this->assertTrue(
+                view()->exists($guides->view($slug)),
+                "Guide [{$slug}] is registered but has no Blade view."
+            );
+        }
+    }
+
     /** A mistyped logo path renders an invisible broken image, so assert the file. */
     public function test_every_guide_logo_points_at_a_file_that_exists(): void
     {
-        foreach (app(GuideLibrary::class)->all() as $slug => $guide) {
+        foreach ($this->guides() as $slug => $guide) {
             if (! isset($guide['logo'])) {
                 continue;
             }
@@ -126,17 +229,5 @@ class VisualizerTest extends TestCase
         $this->get(route('visualizer.guide', 'git-commands'))
             ->assertOk()
             ->assertSee('/images/git-logo.png', false);
-    }
-
-    public function test_every_registered_guide_has_a_backing_view(): void
-    {
-        $guides = app(GuideLibrary::class);
-
-        foreach (array_keys($guides->all()) as $slug) {
-            $this->assertTrue(
-                view()->exists($guides->view($slug)),
-                "Guide [{$slug}] is registered but has no Blade view."
-            );
-        }
     }
 }

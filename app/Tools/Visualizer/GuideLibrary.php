@@ -21,8 +21,26 @@ final class GuideLibrary
             'eyebrow' => 'Developer Field Guide 01',
             'blurb' => 'One continuous workflow — from init through push — with the working tree, staging area, and remote drawn as you step through each command.',
             'steps' => 10,
-            'accent' => '#F05033',
+            'accent' => '#F05133',
             'logo' => 'images/git-logo.png',
+        ],
+
+        'filesystem-commands' => [
+            'title' => 'Navigating the Filesystem',
+            'subtitle' => 'Nine commands to move through Linux',
+            'eyebrow' => 'Developer Field Guide 02',
+            'blurb' => 'One directory tree, walked end to end — pwd, ls, cd and friends, with your position in the tree redrawn as each command runs.',
+            'steps' => 9,
+            'accent' => '#E95420',
+        ],
+
+        'docker-commands' => [
+            'title' => '10 Docker Commands',
+            'subtitle' => 'One container workflow',
+            'eyebrow' => 'Developer Field Guide 03',
+            'blurb' => 'Image to registry to running container — pull, run, exec and the rest, with layers, state and ports shown as they change.',
+            'steps' => 10,
+            'accent' => '#0DB7ED',
         ],
     ];
 
