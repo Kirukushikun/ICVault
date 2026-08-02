@@ -224,10 +224,16 @@ class VisualizerTest extends TestCase
         }
     }
 
-    public function test_the_git_guide_renders_the_git_logo_rather_than_a_placeholder_glyph(): void
+    /** Each masthead shows its product's real mark, not a hand-drawn stand-in. */
+    public function test_every_guide_renders_its_registered_logo_in_the_masthead(): void
     {
-        $this->get(route('visualizer.guide', 'git-commands'))
-            ->assertOk()
-            ->assertSee('/images/git-logo.png', false);
+        foreach ($this->guides() as $slug => $guide) {
+            $this->assertArrayHasKey('logo', $guide, "Guide [{$slug}] has no logo registered.");
+
+            $this->get(route('visualizer.guide', $slug))
+                ->assertOk()
+                ->assertSee($guide['logo'], false)
+                ->assertDontSee('<div class="glyph" aria-hidden="true">', false);
+        }
     }
 }

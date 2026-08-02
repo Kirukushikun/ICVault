@@ -59,10 +59,11 @@ body{
   color:var(--orange);text-transform:uppercase;margin-bottom:18px}
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.glyph{width:52px;height:52px;flex:none;border-radius:50%;
-  background:linear-gradient(135deg,var(--orange),var(--aubergine));
-  display:grid;place-items:center;box-shadow:0 6px 24px rgba(233,84,32,.35)}
-.glyph svg{width:30px;height:30px}
+/* The mark carries its own colour, so no tile behind it — the glow is a
+   drop-shadow that follows the logo shape rather than a square. */
+.glyph{width:58px;height:58px;flex:none;display:grid;place-items:center;
+  filter:drop-shadow(0 6px 20px rgba(233,84,32,.40))}
+.glyph img{width:100%;height:100%;object-fit:contain}
 h1{font-family:'League Spartan','JetBrains Mono',sans-serif;font-weight:700;
   font-size:clamp(28px,5.5vw,48px);line-height:1;letter-spacing:-.01em}
 h1 .accent{color:var(--orange)}
@@ -195,14 +196,8 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
   </div>
 
   <div class="masthead">
-    <div class="glyph" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="#ffffff" stroke-width="1.5"/>
-        <circle cx="12" cy="4.5" r="1.8" fill="#ffffff"/>
-        <circle cx="5" cy="16" r="1.8" fill="#ffffff"/>
-        <circle cx="19" cy="16" r="1.8" fill="#ffffff"/>
-        <circle cx="12" cy="12" r="2.2" fill="#ffffff"/>
-      </svg>
+    <div class="glyph">
+      <img src="{{ asset($guide['logo']) }}" alt="" />
     </div>
     <div>
       <h1>Navigating the <span class="accent">Filesystem</span></h1>

@@ -58,10 +58,11 @@ body{
   color:var(--cyan);text-transform:uppercase;margin-bottom:18px}
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.glyph{width:52px;height:52px;flex:none;border-radius:12px;
-  background:linear-gradient(135deg,var(--cyan-hot),var(--cyan));
-  display:grid;place-items:center;box-shadow:0 6px 24px rgba(13,183,237,.35)}
-.glyph svg{width:32px;height:32px}
+/* The mark carries its own colour, so no tile behind it — the glow is a
+   drop-shadow that follows the logo shape rather than a square. */
+.glyph{width:58px;height:58px;flex:none;display:grid;place-items:center;
+  filter:drop-shadow(0 6px 20px rgba(13,183,237,.40))}
+.glyph img{width:100%;height:100%;object-fit:contain}
 h1{font-family:'League Spartan','JetBrains Mono',sans-serif;font-weight:800;
   font-size:clamp(30px,6vw,52px);line-height:1;letter-spacing:-.02em}
 h1 .num{color:var(--cyan)}
@@ -233,14 +234,8 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
   </div>
 
   <div class="masthead">
-    <div class="glyph" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="10" width="3" height="3" fill="#1A1A1D"/><rect x="6.5" y="10" width="3" height="3" fill="#1A1A1D"/>
-        <rect x="10" y="10" width="3" height="3" fill="#1A1A1D"/><rect x="6.5" y="6.5" width="3" height="3" fill="#1A1A1D"/>
-        <rect x="10" y="6.5" width="3" height="3" fill="#1A1A1D"/><rect x="13.5" y="10" width="3" height="3" fill="#1A1A1D"/>
-        <path d="M2 13h17c0 3-2 5-5 5H8c-3 0-6-2-6-5Z" fill="#1A1A1D"/>
-        <path d="M18.5 10.5c.8-.6 1.8-.6 2.3 0 .3-1-.4-1.7-.4-1.7s-1.2-.2-1.9.9" fill="#1A1A1D"/>
-      </svg>
+    <div class="glyph">
+      <img src="{{ asset($guide['logo']) }}" alt="" />
     </div>
     <div>
       <h1><span class="num">10</span> DOCKER COMMANDS</h1>

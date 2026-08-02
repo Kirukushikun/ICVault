@@ -69,14 +69,10 @@ body{
 }
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.glyph{
-  /* Git's mark is already an orange diamond — no tile behind it, and the glow
-     comes from drop-shadow so it follows the logo's shape, not a square. */
-  width:58px;height:58px;flex:none;
-  display:grid;place-items:center;
-  transform:rotate(-4deg);
-  filter:drop-shadow(0 6px 20px rgba(240,80,50,.4));
-}
+/* The mark carries its own colour, so no tile behind it — the glow is a
+   drop-shadow that follows the logo shape rather than a square. */
+.glyph{width:58px;height:58px;flex:none;display:grid;place-items:center;
+  filter:drop-shadow(0 6px 20px rgba(240,81,51,.40))}
 .glyph img{width:100%;height:100%;object-fit:contain}
 h1{
   /* League Spartan is the platform's display face — same as page titles in the shell. */
@@ -298,7 +294,7 @@ footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px !import
 
   <div class="masthead">
     <div class="glyph">
-      <img src="/images/git-logo.png" alt="Git" />
+      <img src="{{ asset($guide['logo']) }}" alt="" />
     </div>
     <div>
       <h1><span class="num">10</span> GIT COMMANDS</h1>

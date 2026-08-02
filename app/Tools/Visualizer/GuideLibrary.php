@@ -32,6 +32,7 @@ final class GuideLibrary
             'blurb' => 'One directory tree, walked end to end — pwd, ls, cd and friends, with your position in the tree redrawn as each command runs.',
             'steps' => 9,
             'accent' => '#E95420',
+            'logo' => 'images/ubuntu-logo.png',
         ],
 
         'docker-commands' => [
@@ -41,6 +42,7 @@ final class GuideLibrary
             'blurb' => 'Image to registry to running container — pull, run, exec and the rest, with layers, state and ports shown as they change.',
             'steps' => 10,
             'accent' => '#0DB7ED',
+            'logo' => 'images/docker-logo.png',
         ],
     ];
 
