@@ -180,9 +180,17 @@ table.tbl th.dim,table.tbl td.dim{color:var(--ink-faint);opacity:.45}
 /* ---------- row states — the whole point of the visual ---------- */
 /* Rows arrive neutral and only then take their state, so a filter is seen
    running down the table rather than having already run. */
-table.tbl tbody tr{opacity:0;transform:translateY(-5px);
+table.tbl tbody tr{opacity:0}
+table.tbl tbody tr.in{opacity:1}
+/* Entrance is an animation, not a transition, so that it cannot fight the
+   inline transform a FLIP move needs. It is removed once it has played. */
+table.tbl tbody tr.enter{animation:rowIn .32s ease both}
+@keyframes rowIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* a row gliding to a new position after the rows above it left */
+table.tbl tbody tr.moving{transition:transform .45s cubic-bezier(.5,0,.2,1)}
+/* a row on its way out of the result entirely */
+table.tbl tbody tr.leaving{opacity:0;transform:translateX(-12px);
   transition:opacity .3s ease,transform .3s ease}
-table.tbl tbody tr.in{opacity:1;transform:none}
 table.tbl td{position:relative;
   transition:box-shadow .3s ease,background .3s ease,opacity .3s ease}
 
@@ -219,7 +227,8 @@ tr.cut td{padding:0;border:none;background:transparent}
 tr.cut.in .cut-bar{transform:scaleX(1)}
 
 /* the six rows folding away as GROUP BY collapses them into three */
-table.tbl.folding tbody tr{opacity:.18;transform:translateY(7px);
+table.tbl.folding tbody tr,
+table.tbl.folding tbody tr.in{opacity:.18;transform:translateY(7px);
   transition:opacity .22s ease,transform .22s ease}
 
 /* the column ORDER BY sorted on */
@@ -391,7 +400,7 @@ const EXEC=["FROM","WHERE","GROUP BY","HAVING","SELECT","ORDER BY","LIMIT"];
 
 /* ---------- steps ---------- */
 const STEPS=[
-{ n:"01", kw:"SELECT", arg:"… FROM", desc:"Read a table",
+{ n:"01", kw:"SELECT", arg:"… FROM", desc:"Read a table", scene:"a",
   label:"statement a", hint:"pick the columns",
   sql:[["SELECT","name, city, spend","current"],["FROM","customers","current"],
        ["WHERE","…","ghost"],["ORDER BY","…","ghost"],["LIMIT","…","ghost"]],
@@ -400,13 +409,14 @@ const STEPS=[
   body:"SELECT is a vertical cut: it decides which columns come back, never which rows. Every row is still here — id is simply not on the list, so it is greyed out rather than gone.",
   view:()=>({
     name:"customers",
+    keyBy:"id",
     cols:CUST_COLS.map(c=>c.k==="id"?{...c,dim:true}:c),
     rows:rows(CUSTOMERS),
     shape:"6 rows × 3 columns",
     caption:"<b>6 rows</b> returned — id was not selected"
   })},
 
-{ n:"02", kw:"WHERE", arg:"city = 'Manila'", desc:"Filter rows",
+{ n:"02", kw:"WHERE", arg:"city = 'Manila'", desc:"Filter rows", scene:"a",
   label:"statement a", hint:"cut rows, not columns",
   sql:[["SELECT","name, city, spend","done"],["FROM","customers","done"],
        ["WHERE","city = <span class='lit'>'Manila'</span>","current"],
@@ -416,13 +426,14 @@ const STEPS=[
   body:"Each row is tested on its own. Pass and it stays, fail and it never reaches SELECT — which is why WHERE runs before SELECT even though you write it after.",
   view:()=>({
     name:"customers",
+    keyBy:"id",
     cols:CUST_COLS.map(c=>c.k==="id"?{...c,dim:true}:c),
     rows:rows(CUSTOMERS, r=>r.city==="Manila"?"kept":"dropped"),
     shape:"3 of 6 rows",
     caption:"<b>3 rows</b> passed the test, 3 were filtered out"
   })},
 
-{ n:"03", kw:"ORDER BY", arg:"spend DESC", desc:"Sort the result",
+{ n:"03", kw:"ORDER BY", arg:"spend DESC", desc:"Sort the result", scene:"a",
   label:"statement a", hint:"arrange what survived",
   sql:[["SELECT","name, city, spend","done"],["FROM","customers","done"],
        ["WHERE","city = <span class='lit'>'Manila'</span>","done"],
@@ -432,13 +443,14 @@ const STEPS=[
   body:"Without ORDER BY a database is free to hand rows back in any order it likes — including a different order next time. If the sequence matters, say so.",
   view:()=>({
     name:"result",
-    cols:[CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
+    keyBy:"id",
+    cols:[{...CUST_COLS[0],dim:true},CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
     rows:rows([CUSTOMERS[2],CUSTOMERS[0],CUSTOMERS[5]], ()=>"kept"),
     shape:"3 rows, sorted",
     caption:"<b>3 rows</b> — highest spend first"
   })},
 
-{ n:"04", kw:"LIMIT", arg:"2", desc:"Take the top N",
+{ n:"04", kw:"LIMIT", arg:"2", desc:"Take the top N", scene:"a",
   label:"statement a", hint:"the last thing to run",
   sql:[["SELECT","name, city, spend","done"],["FROM","customers","done"],
        ["WHERE","city = <span class='lit'>'Manila'</span>","done"],
@@ -449,7 +461,8 @@ const STEPS=[
   body:"LIMIT without ORDER BY gives you two arbitrary rows, not the top two. The pair only means “biggest spenders” because the sort ran first.",
   view:()=>({
     name:"result",
-    cols:[CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
+    keyBy:"id",
+    cols:[{...CUST_COLS[0],dim:true},CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
     rows:[{c:CUSTOMERS[2],state:"kept"},{c:CUSTOMERS[0],state:"kept"},
           {divider:"limit 2"},
           {c:CUSTOMERS[5],state:"dropped"}],
@@ -457,7 +470,7 @@ const STEPS=[
     caption:"<b>2 rows</b> returned — the third was cut by the limit"
   })},
 
-{ n:"05", kw:"JOIN", arg:"orders ON …", desc:"Bring in a second table",
+{ n:"05", kw:"JOIN", arg:"orders ON …", desc:"Bring in a second table", scene:"b",
   label:"statement b", hint:"a new statement",
   sql:[["SELECT","c.name, o.item, o.total","done"],["FROM","customers c","current"],
        ["JOIN","orders o <span class='cmt'>ON o.customer_id = c.id</span>","current"]],
@@ -494,7 +507,7 @@ const STEPS=[
     }
   })},
 
-{ n:"06", kw:"GROUP BY", arg:"city", desc:"Collapse into buckets",
+{ n:"06", kw:"GROUP BY", arg:"city", desc:"Collapse into buckets", scene:"c",
   label:"statement c", hint:"many rows become one",
   sql:[["SELECT","city, <span class='fn'>COUNT(*)</span>, <span class='fn'>SUM(spend)</span>","done"],
        ["FROM","customers","done"],["GROUP BY","city","current"],
@@ -507,6 +520,7 @@ const STEPS=[
      table hides the step that matters. */
   pre:()=>({
     name:"customers",
+    keyBy:"id",
     cols:[CUST_COLS[1],CUST_COLS[2],CUST_COLS[3]],
     rows:[
       {divider:"manila"},
@@ -521,6 +535,7 @@ const STEPS=[
   }),
   view:()=>({
     name:"result",
+    keyBy:"city",
     cols:[{k:"city",label:"city"},{k:"customers",label:"count(*)",num:true},
           {k:"total",label:"sum(spend)",num:true}],
     rows:rows([
@@ -532,7 +547,7 @@ const STEPS=[
     caption:"<b>6 rows</b> collapsed into <b>3 groups</b>"
   })},
 
-{ n:"07", kw:"HAVING", arg:"SUM(spend) > 500", desc:"Filter the buckets",
+{ n:"07", kw:"HAVING", arg:"SUM(spend) > 500", desc:"Filter the buckets", scene:"c",
   label:"statement c", hint:"where, but for groups",
   sql:[["SELECT","city, <span class='fn'>COUNT(*)</span>, <span class='fn'>SUM(spend)</span>","done"],
        ["FROM","customers","done"],["GROUP BY","city","done"],
@@ -542,6 +557,7 @@ const STEPS=[
   body:"This is the distinction people trip on. WHERE runs before grouping, so it cannot see a SUM — the total does not exist yet. HAVING runs after, which is the only place a condition on an aggregate can live.",
   view:()=>({
     name:"result",
+    keyBy:"city",
     cols:[{k:"city",label:"city"},{k:"customers",label:"count(*)",num:true},
           {k:"total",label:"sum(spend)",num:true}],
     rows:[
@@ -553,7 +569,7 @@ const STEPS=[
     caption:"<b>2 groups</b> cleared the threshold"
   })},
 
-{ n:"08", kw:"INSERT", arg:"INTO customers", desc:"Add a row", write:true,
+{ n:"08", kw:"INSERT", arg:"INTO customers", desc:"Add a row", write:true, scene:"d",
   label:"statement d", hint:"changes the table",
   sql:[["INSERT INTO","customers <span class='cmt'>(name, city, spend)</span>","current"],
        ["VALUES","(<span class='lit'>'Tim'</span>, <span class='lit'>'Davao'</span>, <span class='lit'>0</span>)","current"]],
@@ -562,6 +578,7 @@ const STEPS=[
   body:"A write statement answers with a count, not a result set. Columns you leave out take their default — id is generated, so it is not in the list.",
   view:()=>({
     name:"customers",
+    keyBy:"id",
     cols:CUST_COLS,
     rows:[...rows(CUSTOMERS), {c:{id:7,name:"Tim",city:"Davao",spend:0},state:"added"}],
     shape:"7 rows",
@@ -569,7 +586,7 @@ const STEPS=[
     captionTone:"warn"
   })},
 
-{ n:"09", kw:"UPDATE", arg:"SET … WHERE", desc:"Change rows in place", write:true,
+{ n:"09", kw:"UPDATE", arg:"SET … WHERE", desc:"Change rows in place", write:true, scene:"d",
   label:"statement e", hint:"the WHERE is the whole safety net",
   sql:[["UPDATE","customers","current"],
        ["SET","spend = spend + <span class='lit'>100</span>","current"],
@@ -579,6 +596,7 @@ const STEPS=[
   body:"Same WHERE, same meaning — but now it decides what gets overwritten rather than what gets returned. Run this without the WHERE and every customer in the table gets the raise.",
   view:()=>({
     name:"customers",
+    keyBy:"id",
     cols:CUST_COLS,
     rows:[
       {c:CUSTOMERS[0],state:""},{c:CUSTOMERS[1],state:""},{c:CUSTOMERS[2],state:""},
@@ -591,7 +609,7 @@ const STEPS=[
     captionTone:"warn"
   })},
 
-{ n:"10", kw:"DELETE", arg:"FROM … WHERE", desc:"Remove rows", write:true,
+{ n:"10", kw:"DELETE", arg:"FROM … WHERE", desc:"Remove rows", write:true, scene:"d",
   label:"statement f", hint:"no undo",
   sql:[["DELETE FROM","customers","current"],
        ["WHERE","spend &lt; <span class='lit'>200</span>","current"]],
@@ -600,6 +618,7 @@ const STEPS=[
   body:"The rows below are struck through, not hidden — after this runs they are gone, and no ORDER BY or LIMIT will bring them back. DELETE with no WHERE empties the table, which is the most expensive typo in SQL.",
   view:()=>({
     name:"customers",
+    keyBy:"id",
     cols:CUST_COLS,
     rows:[
       {c:CUSTOMERS[0],state:""},
@@ -666,51 +685,177 @@ function renderExec(step, tok){
   });
 }
 
-function cell(row,col){
+/* A cell is built as its parts so a chained step can compare and replace the
+   contents of one <td> without rebuilding the row around it. */
+function cellParts(row,col){
   const was=row._was&&row._was[col.k]!==undefined;
   const v=row[col.k]===undefined?"":row[col.k];
-  const inner=was?`<span class="was">${row._was[col.k]}</span><span class="now">${v}</span>`:v;
-  return `<td class="${col.num?"num":""} ${col.dim?"dim":""}">${inner}</td>`;
+  return {
+    cls:`${col.num?"num":""} ${col.dim?"dim":""}`.trim(),
+    inner: was
+      ? `<span class="was">${row._was[col.k]}</span><span class="now">${v}</span>`
+      : String(v)
+  };
+}
+const cellHtml=(row,col)=>{ const p=cellParts(row,col);
+  return `<td class="${p.cls}">${p.inner}</td>`; };
+
+/* Rows are identified by a value, not a position, so the same customer stays
+   the same element as the statement grows around it. */
+function rowKey(spec,r,i){
+  if(r.divider) return "div:"+r.divider;
+  const kb=spec.keyBy;
+  return (kb && r.c[kb]!==undefined) ? kb+":"+r.c[kb] : "i:"+i;
+}
+
+function headHtml(spec){
+  return `<tr>${spec.cols.map(c=>
+    `<th class="${c.num?"num":""} ${c.dim?"dim":""} ${c.sorted?"sorted":""}">`
+    +`${c.label}${c.sorted?" ▼":""}</th>`).join("")}</tr>`;
+}
+
+function rowHtml(spec,r,i){
+  const key=rowKey(spec,r,i);
+  return r.divider
+    ? `<tr class="cut" data-key="${key}" data-state=""><td colspan="${spec.cols.length}">`
+      +`<div class="cut-bar"><span>${r.divider}</span></div></td></tr>`
+    : `<tr data-key="${key}" data-state="${r.state||""}">`
+      +`${spec.cols.map(c=>cellHtml(r.c,c)).join("")}</tr>`;
 }
 
 function renderTable(spec){
-  const head=`<thead><tr>${spec.cols.map(c=>
-    `<th class="${c.num?"num":""} ${c.dim?"dim":""} ${c.sorted?"sorted":""}">`
-    +`${c.label}${c.sorted?" ▼":""}</th>`).join("")}</tr></thead>`;
-
-  const body=`<tbody>${spec.rows.map(r=>
-    r.divider
-      ? `<tr class="cut"><td colspan="${spec.cols.length}">`
-        +`<div class="cut-bar"><span>${r.divider}</span></div></td></tr>`
-      : `<tr data-state="${r.state||""}">${spec.cols.map(c=>cell(r.c,c)).join("")}</tr>`
-  ).join("")}</tbody>`;
-
-  return head+body;
+  return `<thead>${headHtml(spec)}</thead>`
+    +`<tbody>${spec.rows.map((r,i)=>rowHtml(spec,r,i)).join("")}</tbody>`;
 }
 
-/* Rows land one after another, then take their state a beat later — the two
-   passes are what make a filter look like it is being applied. */
-function animateRows(table, tok, base){
-  base=base||0;
-  table.querySelectorAll("tbody tr").forEach((tr,i)=>{
-    after(base+i*55, ()=>tr.classList.add("in"), tok);
-    const state=tr.getAttribute("data-state");
-    if(state) after(base+230+i*70, ()=>tr.classList.add(state), tok);
-  });
+const STATES=["kept","dropped","added","changed","removed"];
+
+/* Reconciles towards a state rather than replaying a script, which is what
+   makes the backward move work: stepping back to 01 simply targets "no
+   state", and the highlight and strike transition away on their own. */
+function setRowState(tr,state){
+  STATES.forEach(s=>{ if(s!==state) tr.classList.remove(s); });
+  if(state) tr.classList.add(state);
+  tr.setAttribute("data-state",state||"");
 }
 
-function paintResult(spec, tok){
-  $("resultName").textContent=spec.name;
-  $("resultShape").textContent=spec.shape||"";
+function enterRow(tr, delay, tok){
+  after(delay, ()=>{
+    tr.classList.add("in","enter");
+    after(340, ()=>tr.classList.remove("enter"), tok);
+  }, tok);
+}
 
+/* ============================================================
+   Progressive display.
+
+   Consecutive steps that show the same table share a scene. Moving inside a
+   scene animates only the delta — a highlight arriving, rows leaving, the
+   sort closing ranks — instead of rebuilding. Crossing scenes falls back to
+   a full render (the normal reset). Works forward and backward.
+
+   rowReg holds the live <tr> for each row currently on screen, so a later
+   step can mutate just what changed.
+   ============================================================ */
+const rowReg=new Map();     // row key → <tr>, valid while one scene is shown
+let sceneOn=null;
+
+function tableParts(){
+  const table=$("resultTable");
+  return {table, head:table.querySelector("thead"), body:table.querySelector("tbody")};
+}
+
+function fullRender(spec, tok){
   const table=$("resultTable");
   table.className="tbl";
   table.innerHTML=renderTable(spec);
-  animateRows(table, tok);
 
+  rowReg.clear();
+  table.querySelectorAll("tbody tr").forEach((tr,i)=>{
+    rowReg.set(tr.getAttribute("data-key"), tr);
+    enterRow(tr, i*55, tok);
+    const state=tr.getAttribute("data-state");
+    if(state) after(230+i*70, ()=>tr.classList.add(state), tok);
+  });
+}
+
+function chainRender(spec, tok){
+  const {head, body}=tableParts();
+  head.innerHTML=headHtml(spec);
+
+  const targets=spec.rows.map((r,i)=>({key:rowKey(spec,r,i), r, i}));
+  const wanted=new Set(targets.map(t=>t.key));
+
+  // Phase one: everything that can change without the row moving.
+  const leaving=[];
+  rowReg.forEach((tr,key)=>{
+    if(!wanted.has(key)){ tr.classList.add("leaving"); leaving.push([key,tr]); }
+  });
+
+  targets.forEach(t=>{
+    const tr=rowReg.get(t.key);
+    if(!tr || t.r.divider) return;
+    spec.cols.forEach((c,ci)=>{
+      const td=tr.children[ci], p=cellParts(t.r.c,c);
+      if(td && td.innerHTML!==p.inner) td.innerHTML=p.inner;
+    });
+    setRowState(tr, t.r.state||"");
+  });
+
+  // Phase two: the rejected rows are gone, so the rest close ranks.
+  const settle=()=>{
+    const first=new Map();          // LAST — where each survivor sits now
+    rowReg.forEach((tr,key)=>{ if(wanted.has(key)) first.set(key, tr.getBoundingClientRect()); });
+
+    leaving.forEach(([key,tr])=>{ tr.remove(); rowReg.delete(key); });
+
+    const fresh=[];
+    targets.forEach(t=>{
+      let tr=rowReg.get(t.key);
+      if(!tr){
+        const holder=document.createElement("tbody");
+        holder.innerHTML=rowHtml(spec, t.r, t.i);
+        tr=holder.children[0];
+        rowReg.set(t.key, tr);
+        fresh.push(tr);
+      }
+      body.appendChild(tr);         // appending a node already in the DOM moves it
+    });
+
+    if(!REDUCED) rowReg.forEach((tr,key)=>{
+      const was=first.get(key);
+      if(!was) return;
+      const dy=was.top-tr.getBoundingClientRect().top;
+      if(!dy) return;
+      tr.classList.remove("moving");
+      tr.style.transform=`translateY(${dy}px)`;                 // INVERT
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{     // PLAY
+        tr.classList.add("moving");
+        tr.style.transform="";
+      }));
+    });
+
+    fresh.forEach((tr,k)=>{
+      enterRow(tr, k*60, tok);
+      const state=tr.getAttribute("data-state");
+      if(state) after(200+k*60, ()=>tr.classList.add(state), tok);
+    });
+  };
+
+  if(leaving.length) after(340, settle, tok); else settle();
+}
+
+function resultChrome(spec){
+  $("resultName").textContent=spec.name;
+  $("resultShape").textContent=spec.shape||"";
   const cap=$("resultCaption");
   cap.className="caption"+(spec.captionTone?" "+spec.captionTone:"");
   cap.innerHTML=spec.caption||"";
+}
+
+function paintResult(spec, tok, chained){
+  resultChrome(spec);
+  if(chained) chainRender(spec, tok); else fullRender(spec, tok);
 }
 
 function renderSource(spec, tok){
@@ -722,31 +867,44 @@ function renderSource(spec, tok){
        <div class="tbl-h"><span class="t-name">${s.name}</span><span>${s.shape||""}</span></div>
        <div class="tbl-scroll"><table class="tbl">${renderTable(s)}</table></div>
      </div>`;
-  animateRows(wrap.querySelector("table"), tok);
+  wrap.querySelectorAll("tbody tr").forEach((tr,i)=>{
+    enterRow(tr, i*55, tok);
+    const state=tr.getAttribute("data-state");
+    if(state) after(230+i*70, ()=>tr.classList.add(state), tok);
+  });
 }
 
 function select(i){
   const tok=++seq;          // abandons anything the previous step scheduled
   const step=STEPS[i];
   const spec=step.view();
+  const chained=!!step.scene && step.scene===sceneOn;
 
   document.querySelectorAll(".cmd").forEach((el,j)=>
     el.classList.toggle("active", j===i));
+
+  // Leaving GROUP BY between the fold starting and finishing would otherwise
+  // strand the table at the dimmed opacity the fold sets.
+  $("resultTable").classList.remove("folding");
 
   renderStatement(step);
   renderExec(step, tok);
   renderSource(spec, tok);
 
-  // The intermediate state only reads as one if it can be held on screen —
-  // with motion reduced every delay is zero, so it would flash rather than
-  // teach, and the result is better shown directly.
-  if(step.pre && !REDUCED){
-    paintResult(step.pre(), tok);
+  // The fold is how you arrive at a grouped table, so it plays on the way in.
+  // Coming back from HAVING the table is already grouped and replaying it
+  // would be the reset this whole mechanism exists to avoid. With motion
+  // reduced every delay is zero, so it would flash rather than teach.
+  if(step.pre && !REDUCED && !chained){
+    paintResult(step.pre(), tok, false);
     after(1250, ()=>$("resultTable").classList.add("folding"), tok);
-    after(1500, ()=>paintResult(spec, tok), tok);
+    after(1500, ()=>{ $("resultTable").classList.remove("folding");
+                      paintResult(spec, tok, false); }, tok);
   } else {
-    paintResult(spec, tok);
+    paintResult(spec, tok, chained);
   }
+
+  sceneOn=step.scene||null;
 
   $("explain").classList.toggle("write", !!step.write);
   $("exTitle").textContent=step.title;
