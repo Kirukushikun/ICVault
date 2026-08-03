@@ -203,8 +203,8 @@ h1 .accent{color:var(--primary)}
 .explain p{font-size:14px;color:var(--ink)}
 
 /* footer */
-footer{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;display:flex;
-  justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+footer{border-top:1px solid var(--line);padding-top:16px !important; margin-top:28px !important;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--ink-dim)}
 .foot-flow b{color:var(--primary)}
 .counter{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--primary);border:1px solid var(--line);border-radius:8px;padding:6px 12px}

@@ -76,7 +76,7 @@ h1 .accent{color:var(--orange)}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
 
 /* ---------- Command list ---------- */
-.list{display:flex;flex-direction:column;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom: 25px}
 .cmd{position:relative;text-align:left;width:100%;cursor:pointer;
   background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;
   padding:14px 16px 14px 18px;color:var(--ink);transition:border-color .2s,background .2s;
@@ -188,7 +188,7 @@ h1 .accent{color:var(--orange)}
 .explain .flow .on{color:var(--orange)}
 
 /* footer */
-footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
+footer{border-top:1px solid var(--line);padding-top:16px !important;
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--ink-dim)}
 .foot-flow b{color:var(--orange)}

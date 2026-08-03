@@ -75,7 +75,7 @@ h1 .num{color:var(--cyan)}
 @media(max-width:860px){.grid{grid-template-columns:1fr}}
 
 /* ---------- Command list ---------- */
-.list{display:flex;flex-direction:column;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom: 25px;}
 .cmd{position:relative;text-align:left;width:100%;cursor:pointer;
   background:var(--panel);border:1px solid var(--line-soft);border-radius:12px;
   padding:14px 16px 14px 18px;color:var(--ink);
@@ -212,7 +212,7 @@ h1 .num{color:var(--cyan)}
 .explain .flow .on{color:var(--cyan)}
 
 /* footer */
-footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;
+footer{border-top:1px solid var(--line);padding-top:16px !important; margin-top:28px !important;
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;
   color:var(--ink-dim);text-transform:uppercase}

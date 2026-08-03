@@ -54,6 +54,17 @@ final class GuideLibrary
             'accent' => '#9D8CFF',
             'logo' => 'images/http-logo.png',
         ],
+
+        // No logo: SQL is a language, not a product, so this guide's masthead
+        // carries a drawn glyph instead of a brand mark.
+        'sql-commands' => [
+            'title' => '10 SQL Statements',
+            'subtitle' => 'From reading rows to changing them',
+            'eyebrow' => 'Developer Field Guide 05',
+            'blurb' => 'One small dataset, queried and then rewritten — with the rows drawn as each clause keeps, drops, groups or deletes them.',
+            'steps' => 10,
+            'accent' => '#3FCF8E',
+        ],
     ];
 
     /** @return array<string, array<string, string|int>> */

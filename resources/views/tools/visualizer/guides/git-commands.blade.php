@@ -269,7 +269,7 @@ h1 .num{color:var(--amber)}
 .flow .arw{color:var(--amber)}
 
 /* footer */
-footer{margin-top:28px;border-top:1px solid var(--line);padding-top:16px !important;
+footer{border-top:1px solid var(--line);padding-top:16px !important;
   display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;
   color:var(--ink-dim);text-transform:uppercase}
