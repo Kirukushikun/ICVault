@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Platform\Support\ToolRegistry;
-use App\Tools\Quiz\Services\AI\NaiveLineParser;
+use App\Tools\Quiz\Services\AI\ClaudeQuestionParser;
 use App\Tools\Quiz\Services\AI\QuestionParserContract;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,9 +21,7 @@ class AppServiceProvider extends ServiceProvider
             fn () => new ToolRegistry(config('tools', []))
         );
 
-        // Stand-in for a real AI provider (see NaiveLineParser docblock) —
-        // swap this binding when one is wired up.
-        $this->app->bind(QuestionParserContract::class, NaiveLineParser::class);
+        $this->app->bind(QuestionParserContract::class, ClaudeQuestionParser::class);
     }
 
     /**

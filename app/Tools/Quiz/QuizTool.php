@@ -61,7 +61,11 @@ final class QuizTool implements ProvidesRecentActivity, ProvidesToolSummary
             ->get()
             ->map(fn (ImportBatch $batch) => new ActivityItem(
                 text: 'Imported '.$batch->questions_count.' new question'.($batch->questions_count === 1 ? '' : 's')
-                    .' from '.($batch->source_type === 'note' ? 'an Obsidian note' : 'a session log'),
+                    .' from '.match ($batch->source_type) {
+                        'note' => 'an Obsidian note',
+                        'markdown' => 'a structured Markdown file',
+                        default => 'a session log',
+                    },
                 at: $batch->created_at,
             ));
 

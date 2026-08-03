@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-5'),
+        // Independent of whether a key is configured — lets AI generation be
+        // switched off deliberately (e.g. while on a free/limited plan)
+        // rather than only failing when a call is actually attempted.
+        'enabled' => env('AI_IMPORT_ENABLED', true),
+    ],
+
 ];

@@ -18,6 +18,9 @@
     --color-border: rgba(255, 255, 255, 0.08);
     --color-green: #2e9c6b;
     --color-amber: #c98a2e;
+    /* Marks anything a model wrote rather than the reader — deliberately off
+       the red/green axis so "AI drafted this" never reads as a pass or fail. */
+    --color-ai: #8b6dd9;
 }
 
 @layer base {

@@ -30,11 +30,11 @@ class ImportPipelineServiceTest extends TestCase
         $this->service->transitionTo($batch, ImportStatus::Parsed);
         $this->assertSame(ImportStatus::Parsed, $batch->fresh()->status);
 
-        $this->service->transitionTo($batch, ImportStatus::AiConverted);
-        $this->assertSame(ImportStatus::AiConverted, $batch->fresh()->status);
+        $this->service->transitionTo($batch, ImportStatus::Ready);
+        $this->assertSame(ImportStatus::Ready, $batch->fresh()->status);
 
-        $this->service->transitionTo($batch, ImportStatus::Queued);
-        $this->assertSame(ImportStatus::Queued, $batch->fresh()->status);
+        $this->service->transitionTo($batch, ImportStatus::Imported);
+        $this->assertSame(ImportStatus::Imported, $batch->fresh()->status);
     }
 
     public function test_it_rejects_a_transition_that_skips_a_stage(): void
@@ -43,7 +43,7 @@ class ImportPipelineServiceTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        $this->service->transitionTo($batch, ImportStatus::Queued);
+        $this->service->transitionTo($batch, ImportStatus::Imported);
     }
 
     public function test_it_rejects_a_transition_from_a_terminal_state(): void
@@ -55,10 +55,31 @@ class ImportPipelineServiceTest extends TestCase
         $this->service->transitionTo($batch, ImportStatus::Parsed);
     }
 
+    public function test_stage_candidates_writes_them_and_marks_the_batch_ready(): void
+    {
+        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Parsed]);
+
+        $candidates = [[
+            'difficulty' => 'medium',
+            'type' => 'fill_blank',
+            'prompt' => 'Fill in the blank: dispatch() queues a ____',
+            'options_json' => null,
+            'answer' => 'job',
+            'explanation' => 'dispatch() queues a job',
+        ]];
+
+        $result = $this->service->stageCandidates($batch, $candidates);
+
+        $this->assertSame(ImportStatus::Ready, $result->status);
+        $this->assertSame($candidates, $batch->fresh()->candidates_json);
+        // Nothing is a real Question row yet — staging is not committing.
+        $this->assertSame(0, \App\Tools\Quiz\Models\Question::count());
+    }
+
     public function test_import_questions_creates_rows_tied_to_the_batch_and_its_category_then_marks_imported(): void
     {
         $category = Category::factory()->create();
-        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Queued, 'category_id' => $category->id]);
+        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Ready, 'category_id' => $category->id]);
 
         $questions = $this->service->importQuestions($batch, [
             [
@@ -83,7 +104,7 @@ class ImportPipelineServiceTest extends TestCase
     public function test_import_questions_spins_a_tip_off_each_question_with_an_explanation(): void
     {
         $category = Category::factory()->create();
-        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Queued, 'category_id' => $category->id]);
+        $batch = ImportBatch::factory()->create(['status' => ImportStatus::Ready, 'category_id' => $category->id]);
 
         $questions = $this->service->importQuestions($batch, [
             [

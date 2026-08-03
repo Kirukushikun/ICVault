@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['source_type', 'category_id', 'raw_content', 'status', 'error_message'])]
+#[Fillable(['source_type', 'category_id', 'raw_content', 'candidates_json', 'status', 'error_message'])]
 class ImportBatch extends Model
 {
     /** @use HasFactory<\Database\Factories\Quiz\ImportBatchFactory> */
@@ -25,6 +25,7 @@ class ImportBatch extends Model
     {
         return [
             'status' => ImportStatus::class,
+            'candidates_json' => 'array',
         ];
     }
 

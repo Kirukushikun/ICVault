@@ -6,10 +6,10 @@ use App\Tools\Quiz\Enums\Difficulty;
 use App\Tools\Quiz\Enums\QuestionType;
 
 /**
- * Deterministic stand-in for a real AI parser: turns each non-empty line of
- * raw note/log text into a fill-blank question by blanking out its last
- * word. Swap for a real provider behind {@see QuestionParserContract}
- * without touching the pipeline or job that calls it.
+ * Deterministic stand-in for {@see ClaudeQuestionParser}: turns each
+ * non-empty line of raw note/log text into a fill-blank question by
+ * blanking out its last word. Not bound in the container — kept for tests
+ * that need the pipeline fed something predictable without a network call.
  */
 class NaiveLineParser implements QuestionParserContract
 {
@@ -31,6 +31,7 @@ class NaiveLineParser implements QuestionParserContract
                 'options_json' => null,
                 'answer' => $answer,
                 'explanation' => $line,
+                'source_excerpt' => $line,
             ];
         })->all();
     }

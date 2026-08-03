@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Import & Session Logs — Redesign</title>
+<style>
+  :root{
+    --bg:#120a0f;
+    --panel:#1a1015;
+    --panel-2:#211419;
+    --line:#33222a;
+    --line-soft:#2a1a21;
+    --text:#f3e9ec;
+    --muted:#9c8891;
+    --faint:#6d5b63;
+    --accent:#e11d5b;
+    --accent-soft:#e11d5b22;
+    --answer:#1f9d6b;
+    --answer-soft:#1f9d6b1f;
+    --ai:#8b6dd9;
+    --ai-soft:#8b6dd91f;
+    --code:#c9b8bf;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:14px;line-height:1.5;
+  }
+  .wrap{max-width:1280px;margin:0 auto;padding:36px 40px 80px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+  h1{font-size:30px;margin:0 0 10px;letter-spacing:-.01em}
+  .lede{color:var(--muted);max-width:620px;margin:0}
+
+  .grid{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:32px;margin-top:34px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .input-col{position:sticky;top:28px}
+  @media(max-width:900px){.input-col{position:static}}
+
+  .tabs{display:flex;gap:4px;background:var(--panel);padding:4px;border-radius:var(--radius);border:1px solid var(--line-soft)}
+  .tab{
+    flex:1;text-align:center;padding:10px 8px;border-radius:7px;cursor:pointer;
+    font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:0;transition:.15s;
+    display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.2;
+  }
+  .tab.active{background:var(--accent);color:#fff}
+  .tab:not(.active):hover{color:var(--text);background:var(--panel-2)}
+  .tab .mode{font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:1px 6px;border-radius:20px}
+  .tab.active .mode{background:#ffffff26;color:#fff}
+  .tab:not(.active) .mode.manual{background:var(--answer-soft);color:var(--answer)}
+  .tab:not(.active) .mode.ai{background:var(--ai-soft);color:var(--ai)}
+
+  .field-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;margin:22px 0 8px}
+  select,input,textarea{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit}
+  select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+
+  .source-note{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:11px 13px;margin-top:8px;font-size:12.5px;color:var(--muted);display:flex;gap:9px;align-items:flex-start}
+  .source-note .badge{font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 7px;border-radius:20px;flex:none;margin-top:1px}
+  .source-note .badge.manual{background:var(--answer-soft);color:var(--answer)}
+  .source-note .badge.ai{background:var(--ai-soft);color:var(--ai)}
+
+  .drop{margin-top:14px;border:1.5px dashed var(--line);border-radius:var(--radius);padding:30px 20px;text-align:center;cursor:pointer;background:var(--panel);transition:.15s}
+  .drop:hover{border-color:var(--accent);background:var(--panel-2)}
+  .drop .icon{font-size:24px;margin-bottom:8px}
+  .drop .big{font-weight:600;margin-bottom:3px}
+  .drop .small{color:var(--faint);font-size:12px}
+
+  textarea.paste{margin-top:8px;min-height:170px;resize:vertical;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:var(--code);line-height:1.7}
+
+  .format-toggle{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:none;border:0;color:var(--muted);cursor:pointer;font-size:12px;padding:0}
+  .format-toggle:hover{color:var(--accent)}
+  .format-guide{margin-top:10px;background:var(--panel);border:1px solid var(--line-soft);border-radius:8px;padding:14px 16px;font-size:12.5px;color:var(--muted);display:none}
+  .format-guide.open{display:block}
+  .format-guide code{background:var(--panel-2);color:var(--accent);padding:1px 5px;border-radius:4px;font-size:11.5px}
+  .format-guide .row{padding:5px 0;border-bottom:1px solid var(--line-soft)}
+  .format-guide .row:last-child{border-bottom:0}
+  .format-guide .row.lead{color:var(--text);padding-bottom:9px;margin-bottom:4px;line-height:1.55}
+
+  .capture{margin-top:8px;min-height:150px;resize:vertical;font-size:13.5px;line-height:1.65}
+  .capture::placeholder{color:var(--faint);opacity:1}
+
+  .primary{width:100%;margin-top:22px;background:var(--accent);border:0;color:#fff;font-weight:700;font-size:14px;letter-spacing:.02em;padding:13px;border-radius:9px;cursor:pointer;transition:.15s}
+  .primary:hover{background:#f52468}
+
+  .review-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+  .review-head h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin:0;font-weight:700}
+  .count-pill{background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:12px;padding:2px 9px;border-radius:20px}
+  .review-sub{color:var(--muted);font-size:12.5px;margin:0 0 8px}
+
+  .stepper{display:flex;gap:0;margin:14px 0 22px;background:var(--panel);border:1px solid var(--line-soft);border-radius:9px;overflow:hidden}
+  .step{flex:1;display:flex;align-items:center;gap:9px;padding:11px 16px;position:relative}
+  .step:not(:last-child)::after{content:"";position:absolute;right:0;top:20%;bottom:20%;width:1px;background:var(--line-soft)}
+  .step .dot{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex:none}
+  .step.done .dot{background:var(--answer);color:#fff}
+  .step.active .dot{background:var(--accent);color:#fff}
+  .step.todo .dot{background:var(--panel-2);color:var(--faint);border:1px solid var(--line)}
+  .step .txt{font-size:12px;font-weight:600}
+  .step.todo .txt{color:var(--faint)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+  .card.ai-card{border-left:2px solid var(--ai)}
+  .card-badge-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .src-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:20px}
+  .src-badge.manual{background:var(--answer-soft);color:var(--answer)}
+  .src-badge.ai{background:var(--ai-soft);color:var(--ai)}
+  .card-index{font-size:11px;color:var(--faint);font-weight:600}
+
+  .card-top{display:flex;gap:10px;margin-bottom:14px}
+  .card-top select{flex:1}
+  .q-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:6px}
+  .q-text{background:var(--panel-2);border:1px solid var(--line-soft);border-radius:8px;padding:11px 13px;font-weight:600;font-size:14.5px}
+
+  .opts{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  .opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line-soft);font-size:13.5px;cursor:pointer;transition:.12s}
+  .opt .mark{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--faint);flex:none}
+  .opt.correct{background:var(--answer-soft);border-color:var(--answer)}
+  .opt.correct .mark{background:var(--answer);border-color:var(--answer);position:relative}
+  .opt.correct .mark::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+  .opt.correct .tag{margin-left:auto;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--answer);font-weight:700}
+
+  .expl{margin-top:14px}
+  .expl textarea{min-height:60px;resize:vertical;font-size:13px;color:var(--muted);line-height:1.6}
+
+  .ai-source{margin-top:12px;background:var(--ai-soft);border:1px solid #8b6dd93a;border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted)}
+  .ai-source .lbl{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ai);font-weight:700;margin-bottom:4px}
+  .ai-source .quote{font-style:italic;color:var(--code)}
+
+  .card-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line-soft)}
+  .ghost{background:none;border:1px solid var(--line);color:var(--muted);padding:7px 15px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600}
+  .ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .ghost.danger:hover{border-color:#c0392b;color:#e05a4a}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Pipeline</div>
+  <h1>Import &amp; Session Logs</h1>
+  <p class="lede">Bring in questions three ways: paste ones you've already written, hand over a full note, or drop a quick "today I learned." Everything lands here for review before it joins the pool.</p>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="input-col">
+      <div class="tabs">
+        <button class="tab active" onclick="setSrc(this,'manual')">Ready-made</button>
+        <button class="tab" onclick="setSrc(this,'notes')">Study Notes</button>
+        <button class="tab" onclick="setSrc(this,'dump')">Quick capture</button>
+      </div>
+
+      <div class="field-label">Category</div>
+      <select><option>Git</option><option>PHP</option><option>Composer</option></select>
+
+      <div class="field-label" id="content-label">Add content</div>
+
+      <!-- Upload path: Ready-made + Study Notes -->
+      <div id="upload-path">
+        <div class="drop" onclick="document.querySelector('.paste').focus()">
+          <div class="icon">📥</div>
+          <div class="big" id="drop-big">Drop a .md file, or click to browse</div>
+          <div class="small" id="drop-small">Structured Markdown — Q / options / Answer</div>
+        </div>
+      </div>
+
+      <!-- Capture path: Quick capture -->
+      <div id="capture-path" style="display:none">
+        <textarea class="capture" id="capture" spellcheck="false" placeholder="Today I learned that composer dump-autoload -o builds a static class map so autoloading is faster in production…
+
+Drop a thought, a definition, or how something works. One idea or several — the AI will sort them into questions."></textarea>
+      </div>
+
+      <button class="format-toggle" id="fmt-btn" onclick="toggleInfo()">ⓘ How should the file be formatted?</button>
+
+      <!-- Ready-made: exact syntax rules -->
+      <div class="format-guide open" id="fg-manual">
+        <div class="row"><code>Q:</code> starts every question</div>
+        <div class="row"><code>a) b) c)</code> lettered options make it multiple choice</div>
+        <div class="row">A fenced code block makes it a code question</div>
+        <div class="row"><code>Answer:</code> alone makes it fill-in-the-blank</div>
+        <div class="row"><code>Explanation:</code> and <code>Difficulty:</code> work anywhere</div>
+      </div>
+
+      <!-- Study Notes: what the AI does -->
+      <div class="format-guide" id="fg-notes">
+        <div class="row">Give it a full note — headings, paragraphs, code blocks, whatever you've got.</div>
+        <div class="row">The AI scans for facts worth quizzing and drafts a question for each.</div>
+        <div class="row">It writes plausible wrong answers and sets a difficulty per question.</div>
+        <div class="row">Every draft shows the note excerpt it came from, so you can check it.</div>
+        <div class="row">Nothing saves until you approve it — edit or discard any draft.</div>
+      </div>
+
+      <!-- Quick capture: what the AI does -->
+      <div class="format-guide" id="fg-dump">
+        <div class="row">Type a loose "today I learned" — even a single sentence works.</div>
+        <div class="row">The AI turns each idea into a clean, self-contained question.</div>
+        <div class="row">It fills in options and a difficulty guess where they're missing.</div>
+        <div class="row">Rougher input means rougher drafts — expect to edit more here.</div>
+        <div class="row">You review and approve everything before it joins the pool.</div>
+      </div>
+
+      <div class="field-label" id="paste-label">Or paste below</div>
+      <textarea class="paste" id="paste" spellcheck="false">Q: What does PSR-4 define?
+a) Autoloading standard
+b) Coding style guide
+Answer: a
+Explanation: PSR-4 maps namespaces to file paths.</textarea>
+
+      <button class="primary" id="primary">Parse &amp; review →</button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="review-col">
+      <div class="review-head">
+        <h2>Review candidates</h2>
+        <span class="count-pill">8 pending</span>
+      </div>
+      <p class="review-sub">Nothing here is saved yet. Edit anything, discard what you don't want, then save.</p>
+
+      <div class="stepper">
+        <div class="step done"><span class="dot">✓</span><span class="txt">Parsed</span></div>
+        <div class="step active"><span class="dot">2</span><span class="txt">Reviewing</span></div>
+        <div class="step todo"><span class="dot">3</span><span class="txt">Saved to pool</span></div>
+      </div>
+
+      <!-- manual card -->
+      <div class="card">
+        <div class="card-badge-row">
+          <span class="src-badge manual">✓ From your file</span>
+          <span class="card-index">1 of 8</span>
+        </div>
+        <div class="card-top">
+          <select><option>Multiple Choice</option><option>Code</option><option>Fill-in-the-blank</option></select>
+          <select><option>Easy</option><option>Medium</option><option>Hard</option></select>
+        </div>
+        <div class="q-label">Question</div>
+        <div class="q-text">What does PSR-4 define?</div>
+        <div class="opts">
+          <div class="opt correct"><span class="mark"></span> Autoloading standard <span class="tag">Correct</span></div>
+          <div class="opt"><span class="mark"></span> Coding style guide</div>
+          <div class="opt"><span class="mark"></span> Testing framework</div>
+          <div class="opt"><span class="mark"></span> Deployment process</div>
+        </div>
+        <div class="expl">
+          <div class="q-label">Explanation</div>
+          <textarea>PSR-4 maps namespaces to file paths, which is what lets Composer autoload classes without a manifest.</textarea>
+        </div>
+        <div class="card-actions">
+          <button class="ghost danger">Discard</button>
+          <button class="ghost">Save this one</button>
+        </div>
+      </div>
+
+      <!-- AI card -->
+      <div class="card ai-card">
+        <div class="card-badge-row">
+          <span class="src-badge ai">✦ AI-generated</span>
+          <span class="card-index">2 of 8</span>
+        </div>
+        <div class="card-top">
+          <select><option>Multiple Choice</option></select>
+          <select><option>Medium</option></select>
+        </div>
+        <div class="q-label">Question</div>
+        <div class="q-text">Which Composer command generates the optimized autoloader without installing new packages?</div>
+        <div class="opts">
+          <div class="opt"><span class="mark"></span> composer install</div>
+          <div class="opt"><span class="mark"></span> composer update</div>
+          <div class="opt correct"><span class="mark"></span> composer dump-autoload -o <span class="tag">Correct</span></div>
+          <div class="opt"><span class="mark"></span> composer require</div>
+        </div>
+        <div class="expl">
+          <div class="q-label">Explanation</div>
+          <textarea>dump-autoload rebuilds the class map; the -o flag converts PSR-4 rules into a static map for faster lookups in production.</textarea>
+        </div>
+        <div class="ai-source">
+          <div class="lbl">Drawn from your note</div>
+          <div class="quote">"…ran composer dump-autoload -o before deploying to prod, apparently it makes the autoloader a static map so lookups are faster…"</div>
+        </div>
+        <div class="card-actions">
+          <button class="ghost danger">Discard</button>
+          <button class="ghost">Save this one</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const cfg = {
+    manual:{mode:'upload', contentLabel:'Add content', big:"Drop a .md file, or click to browse", small:"Structured Markdown — Q / options / Answer", info:"What happens with a ready-made file?", btn:"Parse & review →"},
+    notes: {mode:'upload', contentLabel:'Add a note', big:"Drop a note or doc, or click to browse", small:"Any Markdown — the AI reads it for you",     info:"What does the AI do with my notes?",   btn:"Generate questions →"},
+    dump:  {mode:'capture', contentLabel:'Capture an idea', info:"What does the AI do with a quick capture?", btn:"Generate questions →"}
+  };
+  let curSrc = 'manual';
+  document.getElementById('fg-notes').style.display = 'none';
+  document.getElementById('fg-dump').style.display = 'none';
+
+  function toggleInfo(){
+    document.getElementById('fg-'+curSrc).classList.toggle('open');
+  }
+  function setSrc(el, key){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    const open = document.getElementById('fg-'+curSrc).classList.contains('open');
+    curSrc = key;
+    ['manual','notes','dump'].forEach(k=>{
+      const g = document.getElementById('fg-'+k);
+      g.style.display = k===key ? 'block' : 'none';
+      g.classList.toggle('open', k===key && open);
+    });
+    const isCapture = cfg[key].mode==='capture';
+    document.getElementById('upload-path').style.display  = isCapture ? 'none' : 'block';
+    document.getElementById('capture-path').style.display = isCapture ? 'block' : 'none';
+    // the "Or paste below" box only makes sense alongside upload
+    document.getElementById('paste-label').style.display = isCapture ? 'none' : 'block';
+    document.getElementById('paste').style.display        = isCapture ? 'none' : 'block';
+    document.getElementById('content-label').textContent = cfg[key].contentLabel;
+    if(!isCapture){
+      document.getElementById('drop-big').textContent = cfg[key].big;
+      document.getElementById('drop-small').textContent = cfg[key].small;
+    }
+    document.getElementById('fmt-btn').textContent = 'ⓘ ' + cfg[key].info;
+    document.getElementById('primary').textContent = cfg[key].btn;
+  }
+</script>
+</body>
+</html>

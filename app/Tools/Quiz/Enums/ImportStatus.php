@@ -6,8 +6,9 @@ enum ImportStatus: string
 {
     case Uploaded = 'uploaded';
     case Parsed = 'parsed';
-    case AiConverted = 'ai_converted';
-    case Queued = 'queued';
+
+    /** Candidates generated (AI or manual) and awaiting human review. */
+    case Ready = 'ready';
     case Imported = 'imported';
     case Failed = 'failed';
 }

@@ -12,14 +12,15 @@ use RuntimeException;
 class ImportPipelineService
 {
     /**
-     * uploaded -> parsed -> ai_converted -> queued -> imported, with a
-     * failure exit from any non-terminal state.
+     * uploaded -> parsed -> ready -> imported, with a failure exit from any
+     * non-terminal state. `ready` is where a batch sits, with its candidates
+     * staged in `candidates_json`, while the reader reviews and edits them —
+     * nothing becomes a Question row until they explicitly save.
      */
     private const array ALLOWED_TRANSITIONS = [
         'uploaded' => ['parsed', 'failed'],
-        'parsed' => ['ai_converted', 'failed'],
-        'ai_converted' => ['queued', 'failed'],
-        'queued' => ['imported', 'failed'],
+        'parsed' => ['ready', 'failed'],
+        'ready' => ['imported', 'failed'],
         'imported' => [],
         'failed' => [],
     ];
@@ -40,15 +41,49 @@ class ImportPipelineService
     }
 
     /**
-     * Turns parser candidates into real Question rows and marks the batch
-     * imported. Requires the batch to already be `queued`.
+     * Stages parser output on the batch for review and marks it `ready` —
+     * the pause between parsing and committing anything to the questions
+     * table, so a reader can edit or discard candidates before they exist as
+     * real rows. Requires the batch to already be `parsed`.
+     */
+    public function stageCandidates(ImportBatch $batch, array $candidates): ImportBatch
+    {
+        $batch->update(['candidates_json' => $candidates]);
+
+        return $this->transitionTo($batch, ImportStatus::Ready);
+    }
+
+    /**
+     * Turns (possibly reader-edited) candidates into real Question rows and
+     * marks the batch imported. Requires the batch to already be `ready`.
+     * Takes `$candidates` as a parameter rather than reading them off the
+     * batch, so it works equally for the original parser output or whatever
+     * the reader changed on the review screen.
      *
      * @param  array<int, array{difficulty: string, type: string, prompt: string, options_json: ?array, answer: string, explanation: ?string}>  $candidates
      * @return Collection<int, Question>
      */
     public function importQuestions(ImportBatch $batch, array $candidates): Collection
     {
-        $questions = collect($candidates)->map(function (array $candidate) use ($batch) {
+        $questions = $this->commitQuestions($batch, $candidates);
+
+        $this->transitionTo($batch, ImportStatus::Imported);
+
+        return $questions;
+    }
+
+    /**
+     * Creates Question rows without closing the batch — the review screen
+     * saves candidates one at a time, so the batch has to stay `ready` until
+     * the reader has actually dealt with the last one. Callers are
+     * responsible for the eventual transition to `imported`.
+     *
+     * @param  array<int, array{difficulty: string, type: string, prompt: string, options_json: ?array, answer: string, explanation: ?string}>  $candidates
+     * @return Collection<int, Question>
+     */
+    public function commitQuestions(ImportBatch $batch, array $candidates): Collection
+    {
+        return collect($candidates)->map(function (array $candidate) use ($batch) {
             $question = Question::create([
                 ...$candidate,
                 'category_id' => $batch->category_id,
@@ -59,10 +94,6 @@ class ImportPipelineService
 
             return $question;
         });
-
-        $this->transitionTo($batch, ImportStatus::Imported);
-
-        return $questions;
     }
 
     /**

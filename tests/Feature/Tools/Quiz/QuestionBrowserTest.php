@@ -88,6 +88,66 @@ class QuestionBrowserTest extends TestCase
         $this->assertSame($category->id, $question->category_id);
     }
 
+    /**
+     * The whole point of holding the answer by position: editing the marked
+     * option's text carries the answer with it, where the old
+     * newline-textarea plus free-text answer let the two drift apart.
+     */
+    public function test_a_multiple_choice_answer_follows_the_marked_option_when_edited(): void
+    {
+        $question = Question::factory()->create([
+            'type' => 'multiple_choice',
+            'options_json' => ['first', 'second', 'third'],
+            'answer' => 'second',
+        ]);
+
+        Livewire::test(QuestionBrowser::class)
+            ->call('editQuestion', $question->id)
+            ->assertSet('editAnswerIndex', 1)
+            ->set('editOptions.1', 'second, corrected')
+            ->call('updateQuestion')
+            ->assertHasNoErrors();
+
+        $question->refresh();
+        $this->assertSame('second, corrected', $question->answer);
+        $this->assertSame(['first', 'second, corrected', 'third'], $question->options_json);
+    }
+
+    public function test_it_rejects_a_multiple_choice_question_with_no_option_marked_correct(): void
+    {
+        $question = Question::factory()->create([
+            'type' => 'multiple_choice',
+            'options_json' => ['first', 'second'],
+            'answer' => 'first',
+        ]);
+
+        Livewire::test(QuestionBrowser::class)
+            ->call('editQuestion', $question->id)
+            ->call('removeOption', 0)
+            ->call('updateQuestion')
+            ->assertHasErrors(['editOptions']);
+
+        $this->assertSame('first', $question->fresh()->answer);
+    }
+
+    public function test_removing_an_option_shifts_the_correct_mark(): void
+    {
+        $question = Question::factory()->create([
+            'type' => 'multiple_choice',
+            'options_json' => ['a', 'b', 'c'],
+            'answer' => 'c',
+        ]);
+
+        Livewire::test(QuestionBrowser::class)
+            ->call('editQuestion', $question->id)
+            ->assertSet('editAnswerIndex', 2)
+            ->call('removeOption', 0)
+            ->assertSet('editAnswerIndex', 1)
+            ->call('updateQuestion');
+
+        $this->assertSame('c', $question->fresh()->answer);
+    }
+
     public function test_it_requires_a_prompt_and_answer_to_update(): void
     {
         $question = Question::factory()->fillBlank('old answer')->create();
