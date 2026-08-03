@@ -45,8 +45,6 @@ final class GuideLibrary
             'logo' => 'images/docker-logo.png',
         ],
 
-        // No logo: HTTP is a protocol, not a product, so this guide's masthead
-        // carries a drawn glyph instead of a brand mark.
         'http-lifecycle' => [
             'title' => 'The HTTP Request Lifecycle',
             'subtitle' => 'What happens when you hit enter',
@@ -54,6 +52,7 @@ final class GuideLibrary
             'blurb' => 'One URL followed end to end — DNS, TCP, TLS, server, response — with the packet drawn as it travels, and a picker for what goes wrong.',
             'steps' => 8,
             'accent' => '#9D8CFF',
+            'logo' => 'images/http-logo.png',
         ],
     ];
 

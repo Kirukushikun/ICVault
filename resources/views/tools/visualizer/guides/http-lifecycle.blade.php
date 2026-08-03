@@ -59,11 +59,11 @@ body{
   color:var(--primary);text-transform:uppercase;margin-bottom:18px}
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-/* Drawn, not a brand mark — HTTP has no logo. Tile-free so it sits the
-   same way the other guides' real marks do. */
+/* The mark carries its own colour, so no tile behind it — the glow is a
+   drop-shadow that follows the logo shape rather than a square. */
 .glyph{width:58px;height:58px;flex:none;display:grid;place-items:center;
   filter:drop-shadow(0 6px 20px rgba(157,140,255,.40))}
-.glyph svg{width:100%;height:100%}
+.glyph img{width:100%;height:100%;object-fit:contain}
 h1{font-family:'League Spartan','JetBrains Mono',sans-serif;font-weight:700;font-size:clamp(26px,5vw,46px);line-height:1.02;letter-spacing:-.01em}
 h1 .accent{color:var(--primary)}
 .sub{font-family:'JetBrains Mono',monospace;letter-spacing:.24em;text-transform:uppercase;
@@ -219,11 +219,8 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;display
   <div class="eyebrow"><span>&gt;_ coding chops</span><span class="right">{{ $guide['eyebrow'] }}</span></div>
 
   <div class="masthead">
-    <div class="glyph" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="9" stroke="var(--primary)" stroke-width="1.5"/>
-        <path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" stroke="var(--primary)" stroke-width="1.3"/>
-      </svg>
+    <div class="glyph">
+      <img src="{{ asset($guide['logo']) }}" alt="" />
     </div>
     <div>
       <h1>The HTTP <span class="accent">Request</span> Lifecycle</h1>
