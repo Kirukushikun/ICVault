@@ -1,23 +1,17 @@
-<div class="visualizer-guide">
-{{--
-    Concept Visualizer guide — SQL, authored directly as a Blade view.
-
-    Unlike the first four this one has no counterpart in project-overview/;
-    it was written here, so this file is the original rather than a port.
-
-    Guides are hand-authored and self-contained. Only <style> and <script>
-    sit inside verbatim — the markup is plain Blade so the masthead reads
-    its labels from App\Tools\Visualizer\GuideLibrary.
-
-    Rendered full-bleed by layouts/canvas.blade.php.
---}}
-
-@verbatim
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL Statements — Concept Visualizer (standalone)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=League+Spartan:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --inset:#161617;
-  --bg:#1A1A1D;             /* platform page colour */
-  --panel:#222226;          /* raised */
+  --bg:#1A1A1D;
+  --panel:#222226;
   --panel-lift:#27272C;
   --panel-2:#1c1c20;
   --line:rgba(255,255,255,.08);
@@ -25,15 +19,13 @@
   --ink:#ffffff;
   --ink-dim:rgba(255,255,255,.45);
   --ink-faint:rgba(255,255,255,.28);
-  --sql:#3FCF8E;            /* emerald — this guide's accent */
+  --sql:#3FCF8E;
   --sql-hot:#5ce3a6;
   --sql-soft:rgba(63,207,142,.14);
   --amber:#c98a2e;
   --red:#ff5d5d;
   --radius:16px;
 }
-/* Scoped: an unlayered `*` reset would out-rank Tailwind's utility
-   layer and strip the platform header's spacing. */
 .visualizer-guide *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
@@ -49,21 +41,17 @@ body{
   line-height:1.5;
   min-height:100vh;
 }
-/* Padding lives here, not on body, so the platform header stays flush. */
 .visualizer-guide{padding:clamp(16px,3vw,40px)}
 .wrap{max-width:1180px;margin:0 auto}
 
-/* ---------- header ---------- */
 .eyebrow{display:flex;justify-content:space-between;align-items:center;
   font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.18em;
   color:var(--sql);text-transform:uppercase;margin-bottom:18px}
 .eyebrow .right{color:var(--ink-faint)}
 .masthead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-/* The mark carries its own colour, so no tile behind it — the glow is a
-   drop-shadow that follows the logo shape rather than a square. */
 .glyph{width:58px;height:58px;flex:none;display:grid;place-items:center;
   filter:drop-shadow(0 6px 20px rgba(63,207,142,.38))}
-.glyph img{width:100%;height:100%;object-fit:contain}
+.glyph svg{width:100%;height:100%}
 h1{font-family:'League Spartan','JetBrains Mono',sans-serif;font-weight:700;
   font-size:clamp(28px,5.5vw,48px);line-height:1;letter-spacing:-.01em}
 h1 .accent{color:var(--sql)}
@@ -71,9 +59,6 @@ h1 .accent{color:var(--sql)}
   color:var(--ink-dim);font-size:clamp(11px,2vw,14px);margin-top:8px}
 .rule{height:2px;background:linear-gradient(90deg,var(--sql),transparent);margin:22px 0 24px;border-radius:2px}
 
-/* ---------- the statement, full width ---------- */
-/* The query is the hero here, so it gets the top of the page rather than a
-   column — the other guides put a terminal or a spine in this slot. */
 .stmt-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--panel);
   overflow:hidden;margin-bottom:22px}
 .stmt-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
@@ -88,8 +73,6 @@ h1 .accent{color:var(--sql)}
   border-left:2px solid transparent;white-space:nowrap}
 .q-kw{color:var(--sql);font-weight:700;min-width:86px;flex:none}
 .q-body{color:var(--ink);display:inline-block}
-/* The clause this step adds is wiped in from the left, so the statement
-   reads as being written rather than swapped out. */
 .q-line.current .q-body{clip-path:inset(0 0 0 0);transition:clip-path .45s ease}
 .q-line.current.typing .q-body{clip-path:inset(0 101% 0 0)}
 .q-line.current.tip .q-body::after{content:"";display:inline-block;width:7px;height:.95em;
@@ -98,17 +81,12 @@ h1 .accent{color:var(--sql)}
 .q-body .lit{color:var(--sql-hot)}
 .q-body .fn{color:var(--ink)}
 .q-body .cmt{color:var(--ink-faint)}
-/* a clause already applied by an earlier step */
 .q-line.done .q-kw{color:var(--ink-dim)}
 .q-line.done .q-body{color:var(--ink-dim)}
-/* the clause this step introduces */
 .q-line.current{background:var(--sql-soft);border-left-color:var(--sql)}
-/* clauses still to come — the shape of the statement, before it exists */
 .q-line.ghost{opacity:.26}
 .q-line.ghost .q-kw,.q-line.ghost .q-body{color:var(--ink-faint)}
 
-/* ---------- execution order ---------- */
-/* The point of this strip: you write SELECT first, the engine runs it fifth. */
 .exec{display:flex;align-items:center;gap:8px;flex-wrap:wrap;
   padding:11px 16px;border-top:1px solid var(--line-soft);background:var(--inset)}
 .exec .e-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
@@ -123,11 +101,9 @@ h1 .accent{color:var(--sql)}
 .exec.na{opacity:.3}
 .exec .e-note{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-faint)}
 
-/* ---------- layout ---------- */
 .grid{display:grid;grid-template-columns:minmax(260px,.8fr) minmax(340px,1.2fr);gap:24px;align-items:start}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 
-/* ---------- step list ---------- */
 .list{display:flex;flex-direction:column;gap:7px}
 .cmd{position:relative;text-align:left;width:100%;cursor:pointer;
   background:var(--panel);border:1px solid var(--line-soft);border-radius:11px;
@@ -142,7 +118,6 @@ h1 .accent{color:var(--sql)}
   border:1px solid var(--line);border-radius:6px;padding:3px 6px;min-width:26px;text-align:center;
   background:var(--inset)}
 .cmd.active .badge{border-color:var(--sql);color:#0d2b1e;background:var(--sql-hot)}
-/* the three statements that change data, marked apart from the seven that read */
 .cmd.write .badge{color:var(--amber)}
 .cmd.write.active .badge{border-color:var(--amber);background:var(--amber);color:#1A1A1D}
 .cmd.write.active{border-color:var(--amber);background:linear-gradient(90deg,rgba(201,138,46,.14),transparent 70%)}
@@ -154,12 +129,10 @@ h1 .accent{color:var(--sql)}
 .cmd-code .arg{color:var(--ink-faint);font-weight:500;font-size:13px}
 .cmd-desc{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
 
-/* ---------- stage ---------- */
 .stage{position:sticky;top:24px;background:var(--panel);border:1px solid var(--line);
   border-radius:var(--radius);overflow:hidden}
 .stage-inner{padding:16px;display:flex;flex-direction:column;gap:14px}
 
-/* a table, source or result — the signature element */
 .tbl-zone{border:1px solid var(--line);border-radius:10px;background:var(--inset);overflow:hidden}
 .tbl-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:8px 12px;border-bottom:1px solid var(--line-soft);
@@ -174,21 +147,10 @@ table.tbl td{padding:7px 12px;color:var(--ink);white-space:nowrap;
   border-bottom:1px solid var(--line-soft)}
 table.tbl tr:last-child td{border-bottom:none}
 table.tbl .num{text-align:right}
-/* a column the statement did not ask for */
 table.tbl th.dim,table.tbl td.dim{color:var(--ink-faint);opacity:.45}
 
-/* ---------- row states — the whole point of the visual ---------- */
-/* A leaving row is positioned absolutely so it can fade where it stands. Its
-   offsets are measured from the tbody, so the tbody has to be what they
-   resolve against — without this they would resolve against the sticky stage
-   and the row would jump before it faded. */
-table.tbl tbody{position:relative}
-/* Rows arrive neutral and only then take their state, so a filter is seen
-   running down the table rather than having already run. */
 table.tbl tbody tr{opacity:0}
 table.tbl tbody tr.in{opacity:1}
-/* Entrance is an animation, not a transition, so that it cannot fight the
-   inline transform a FLIP move needs. It is removed once it has played. */
 table.tbl tbody tr.enter{animation:rowIn .32s ease both}
 @keyframes rowIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 /* INSERT gets a more deliberate arrival than a generic row entrance: it drops
@@ -199,18 +161,12 @@ table.tbl tbody tr.inserting{animation:rowInsert .5s cubic-bezier(.34,1.56,.64,1
   0%{opacity:0;transform:translateY(-22px)}
   60%{opacity:1;transform:translateY(3px)}
   100%{opacity:1;transform:none}}
-/* a row gliding to a new position after the rows above it left */
 table.tbl tbody tr.moving{transition:transform .45s cubic-bezier(.5,0,.2,1)}
-/* A row on its way out. It is lifted out of layout flow before this applies,
-   so it fades in place while the survivors glide over it — one motion, not a
-   fade followed by a sort. */
 table.tbl tbody tr.leaving{opacity:0;z-index:0;
   transition:opacity .3s ease}
 table.tbl td{position:relative;
   transition:box-shadow .3s ease,background .3s ease,opacity .3s ease}
 
-/* The strike is a drawn line rather than text-decoration, which cannot be
-   animated — this one sweeps across the row, column by column. */
 table.tbl td::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
   background:var(--ink-faint);transform:scaleX(0);transform-origin:left;
   transition:transform .3s ease}
@@ -233,11 +189,9 @@ tr.removed td::after{background:var(--red);transform:scaleX(1)}
 
 td .was{color:var(--ink-faint);text-decoration:line-through;margin-right:7px}
 td .now{color:var(--amber);font-weight:700;display:inline-block}
-/* the replacement value lands after the row has flagged itself amber */
 tr.changed .now{animation:valueIn .38s ease both .34s}
 @keyframes valueIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
 
-/* a rule drawn across the table — the LIMIT cut, and the GROUP BY blocks */
 tr.cut td{padding:0;border:none;background:transparent}
 .cut-bar{display:flex;align-items:center;gap:9px;padding:4px 12px;
   font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
@@ -246,12 +200,10 @@ tr.cut td{padding:0;border:none;background:transparent}
 .cut-bar::before,.cut-bar::after{content:"";height:1px;background:var(--sql);flex:1;opacity:.45}
 tr.cut.in .cut-bar{transform:scaleX(1)}
 
-/* the six rows folding away as GROUP BY collapses them into three */
 table.tbl.folding tbody tr,
 table.tbl.folding tbody tr.in{opacity:.18;transform:translateY(7px);
   transition:opacity .22s ease,transform .22s ease}
 
-/* the column ORDER BY sorted on */
 table.tbl th.sorted{color:var(--sql)}
 
 .caption{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);
@@ -260,7 +212,6 @@ table.tbl th.sorted{color:var(--sql)}
 .caption.warn b{color:var(--amber)}
 .caption.danger b{color:var(--red)}
 
-/* legend for the row states */
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;
   font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint)}
 .legend span{display:flex;align-items:center;gap:6px}
@@ -270,14 +221,12 @@ table.tbl th.sorted{color:var(--sql)}
 .legend i.c{background:var(--amber)}
 .legend i.r{background:var(--red)}
 
-/* explanation */
 .explain{border-top:1px solid var(--line);padding:16px;background:var(--panel-lift)}
 .explain h3{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.08em;
   color:var(--sql);text-transform:uppercase;margin-bottom:6px}
 .explain.write h3{color:var(--amber)}
 .explain p{font-size:14px;color:var(--ink)}
 
-/* ---------- footer ---------- */
 footer{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;display:flex;
   justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .foot-flow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--ink-dim)}
@@ -289,19 +238,24 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;display
 
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-@endverbatim
-
+</head>
+<body>
+<div class="visualizer-guide">
 <div class="wrap">
 
-  <div class="eyebrow"><span>&gt;_ coding chops</span><span class="right">{{ $guide['eyebrow'] }}</span></div>
+  <div class="eyebrow"><span>&gt;_ coding chops</span><span class="right">CONCEPT VISUALIZER</span></div>
 
   <div class="masthead">
-    <div class="glyph">
-      <img src="{{ asset($guide['logo']) }}" alt="" />
+    <div class="glyph" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <ellipse cx="12" cy="5.5" rx="7.5" ry="2.8" stroke="var(--sql)" stroke-width="1.5"/>
+        <path d="M4.5 5.5v6c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8v-6" stroke="var(--sql)" stroke-width="1.5"/>
+        <path d="M4.5 11.5v6c0 1.55 3.36 2.8 7.5 2.8s7.5-1.25 7.5-2.8v-6" stroke="var(--sql)" stroke-width="1.5"/>
+      </svg>
     </div>
     <div>
       <h1>10 <span class="accent">SQL</span> Statements</h1>
-      <div class="sub">{{ $guide['subtitle'] }}</div>
+      <div class="sub">read, filter, group, write</div>
     </div>
   </div>
 
@@ -354,20 +308,13 @@ footer{margin-top:26px;border-top:1px solid var(--line);padding-top:16px;display
   <div class="tagline">ONE DATASET. TEN STATEMENTS. EVERY ANSWER.</div>
 
 </div>
-
-@verbatim
+</div>
 <script>
 /* ============================================================
    SQL, taught against one small dataset.
-
-   Every step renders three things: the statement as it stands, where the
-   engine runs the new clause, and the rows that survive it. Nothing here
-   executes SQL — each step declares the result it is teaching, which keeps
-   the guide honest about what it is (a diagram, not a database).
    ============================================================ */
 (function(){
 
-/* ---------- the dataset ---------- */
 const CUSTOMERS=[
   {id:1,name:"Ada",    city:"Manila", spend:420},
   {id:2,name:"Linus",  city:"Cebu",   spend:180},
@@ -392,15 +339,10 @@ const CUST_COLS=[
   {k:"spend",label:"spend",num:true}
 ];
 
-/* rows(list, stateFn) — wraps plain records as renderable rows. */
 function rows(list, stateFn){
   return list.map(r=>({c:r, state: stateFn ? stateFn(r) : ""}));
 }
 
-/* ---------- timing ---------- */
-/* Steps are sequences, and a step can be abandoned halfway through — every
-   delayed piece of work carries the token of the step that scheduled it and
-   drops out if the reader has moved on. */
 const REDUCED = window.matchMedia
   && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 let seq = 0;
@@ -409,12 +351,8 @@ function after(ms, fn, tok){
   window.setTimeout(()=>{ if(tok===seq) fn(); }, REDUCED ? 0 : ms);
 }
 
-/* ---------- execution order ---------- */
-/* Written order and run order are different, which is the single most useful
-   thing to know about SELECT. The strip below is the run order. */
 const EXEC=["FROM","WHERE","GROUP BY","HAVING","SELECT","ORDER BY","LIMIT"];
 
-/* ---------- steps ---------- */
 const STEPS=[
 { n:"01", kw:"SELECT", arg:"… FROM", desc:"Read a table", scene:"a",
   label:"statement a", hint:"pick the columns",
@@ -474,7 +412,7 @@ const STEPS=[
        ["LIMIT","<span class='lit'>2</span>","current"]],
   exec:"LIMIT",
   title:"LIMIT slices the sorted list",
-  body:"LIMIT without ORDER BY gives you two arbitrary rows, not the top two. The pair only means “biggest spenders” because the sort ran first.",
+  body:"LIMIT without ORDER BY gives you two arbitrary rows, not the top two. The pair only means \u201cbiggest spenders\u201d because the sort ran first.",
   view:()=>({
     name:"result",
     keyBy:"id",
@@ -504,8 +442,6 @@ const STEPS=[
         {name:"Grace", item:"Lamp",    total:60},
         {name:"Edsger",item:"Desk",    total:260}
       ], ()=>"kept"),
-      // shown falling out, because rows vanishing is the surprising part of
-      // an inner join and a result set alone never shows you what left
       ...rows([
         {name:"Linus",  item:"—",total:"—"},
         {name:"Alan",   item:"—",total:"—"},
@@ -530,10 +466,7 @@ const STEPS=[
        ["HAVING","…","ghost"]],
   exec:"GROUP BY",
   title:"GROUP BY turns rows into groups",
-  body:"Six customers become three cities. Once you group, every column in SELECT must either be the thing you grouped by or an aggregate over the group — there is no single “name” for a bucket of three people.",
-  /* Shown before the result: the same six rows, sorted into their buckets.
-     Grouping is the hardest idea in this guide and a finished three-row
-     table hides the step that matters. */
+  body:"Six customers become three cities. Once you group, every column in SELECT must either be the thing you grouped by or an aggregate over the group — there is no single \u201cname\u201d for a bucket of three people.",
   pre:()=>({
     name:"customers",
     keyBy:"id",
@@ -650,11 +583,8 @@ const STEPS=[
   })}
 ];
 
-/* ---------- rendering ---------- */
 const $=id=>document.getElementById(id);
 
-/* The clause this step introduces wipes in; the ones already applied are
-   simply there, because they were written on an earlier step. */
 function renderStatement(step){
   $("stmtLabel").textContent=step.label;
   $("stmtHint").textContent=step.hint||"";
@@ -673,15 +603,12 @@ function renderStatement(step){
       +`<span class="q-kw">${kw}</span><span class="q-body"${style}>${body}</span></div>`;
   }).join("");
 
-  // Two frames: one for the browser to accept the clipped starting state,
-  // one for it to notice the change and transition rather than jump.
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     $("stmtBody").querySelectorAll(".q-line.typing")
       .forEach(el=>el.classList.remove("typing"));
   }));
 }
 
-/* The strip lights left to right, which is the engine walking the clauses. */
 function renderExec(step, tok){
   const exec=$("exec");
   if(!step.exec){
@@ -701,8 +628,6 @@ function renderExec(step, tok){
   });
 }
 
-/* A cell is built as its parts so a chained step can compare and replace the
-   contents of one <td> without rebuilding the row around it. */
 function cellParts(row,col){
   const was=row._was&&row._was[col.k]!==undefined;
   const v=row[col.k]===undefined?"":row[col.k];
@@ -716,8 +641,6 @@ function cellParts(row,col){
 const cellHtml=(row,col)=>{ const p=cellParts(row,col);
   return `<td class="${p.cls}">${p.inner}</td>`; };
 
-/* Rows are identified by a value, not a position, so the same customer stays
-   the same element as the statement grows around it. */
 function rowKey(spec,r,i){
   if(r.divider) return "div:"+r.divider;
   const kb=spec.keyBy;
@@ -746,9 +669,6 @@ function renderTable(spec){
 
 const STATES=["kept","dropped","added","changed","removed","selected"];
 
-/* Reconciles towards a state rather than replaying a script, which is what
-   makes the backward move work: stepping back to 01 simply targets "no
-   state", and the highlight and strike transition away on their own. */
 function setRowState(tr,state){
   STATES.forEach(s=>{ if(s!==state) tr.classList.remove(s); });
   if(state) tr.classList.add(state);
@@ -767,18 +687,7 @@ function enterRow(tr, delay, tok, insert){
   }, tok);
 }
 
-/* ============================================================
-   Progressive display.
-
-   Consecutive steps that show the same table share a scene. Moving inside a
-   scene animates only the delta — a highlight arriving, rows leaving, the
-   sort closing ranks — instead of rebuilding. Crossing scenes falls back to
-   a full render (the normal reset). Works forward and backward.
-
-   rowReg holds the live <tr> for each row currently on screen, so a later
-   step can mutate just what changed.
-   ============================================================ */
-const rowReg=new Map();     // row key → <tr>, valid while one scene is shown
+const rowReg=new Map();
 let sceneOn=null;
 
 function tableParts(){
@@ -976,7 +885,7 @@ function renderSource(spec, tok){
 }
 
 function select(i){
-  const tok=++seq;          // abandons anything the previous step scheduled
+  const tok=++seq;
   const step=STEPS[i];
   const spec=step.view();
   // A chain render (animate only the delta) is right when MOVING to a different
@@ -989,18 +898,12 @@ function select(i){
   document.querySelectorAll(".cmd").forEach((el,j)=>
     el.classList.toggle("active", j===i));
 
-  // Leaving GROUP BY between the fold starting and finishing would otherwise
-  // strand the table at the dimmed opacity the fold sets.
   $("resultTable").classList.remove("folding");
 
   renderStatement(step);
   renderExec(step, tok);
   renderSource(spec, tok);
 
-  // The fold is how you arrive at a grouped table, so it plays on the way in.
-  // Coming back from HAVING the table is already grouped and replaying it
-  // would be the reset this whole mechanism exists to avoid. With motion
-  // reduced every delay is zero, so it would flash rather than teach.
   if(step.pre && !REDUCED && !chained){
     paintResult(step.pre(), tok, false);
     after(1250, ()=>$("resultTable").classList.add("folding"), tok);
@@ -1046,5 +949,5 @@ select(0);
 
 })();
 </script>
-@endverbatim
-</div>
+</body>
+</html>
