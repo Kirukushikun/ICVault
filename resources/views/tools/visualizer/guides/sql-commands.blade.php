@@ -87,7 +87,14 @@ h1 .accent{color:var(--sql)}
 .q-line{display:flex;gap:14px;align-items:baseline;padding:3px 10px;border-radius:7px;
   border-left:2px solid transparent;white-space:nowrap}
 .q-kw{color:var(--sql);font-weight:700;min-width:86px;flex:none}
-.q-body{color:var(--ink)}
+.q-body{color:var(--ink);display:inline-block}
+/* The clause this step adds is wiped in from the left, so the statement
+   reads as being written rather than swapped out. */
+.q-line.current .q-body{clip-path:inset(0 0 0 0);transition:clip-path .45s ease}
+.q-line.current.typing .q-body{clip-path:inset(0 101% 0 0)}
+.q-line.current.tip .q-body::after{content:"";display:inline-block;width:7px;height:.95em;
+  background:var(--sql);margin-left:7px;vertical-align:-1px;animation:caret 1.05s steps(1) infinite}
+@keyframes caret{0%,49%{opacity:1}50%,100%{opacity:0}}
 .q-body .lit{color:var(--sql-hot)}
 .q-body .fn{color:var(--ink)}
 .q-body .cmt{color:var(--ink-faint)}
@@ -170,16 +177,53 @@ table.tbl .num{text-align:right}
 /* a column the statement did not ask for */
 table.tbl th.dim,table.tbl td.dim{color:var(--ink-faint);opacity:.45}
 
-/* row states — the whole point of the visual */
+/* ---------- row states — the whole point of the visual ---------- */
+/* Rows arrive neutral and only then take their state, so a filter is seen
+   running down the table rather than having already run. */
+table.tbl tbody tr{opacity:0;transform:translateY(-5px);
+  transition:opacity .3s ease,transform .3s ease}
+table.tbl tbody tr.in{opacity:1;transform:none}
+table.tbl td{position:relative;
+  transition:box-shadow .3s ease,background .3s ease,opacity .3s ease}
+
+/* The strike is a drawn line rather than text-decoration, which cannot be
+   animated — this one sweeps across the row, column by column. */
+table.tbl td::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;
+  background:var(--ink-faint);transform:scaleX(0);transform-origin:left;
+  transition:transform .3s ease}
+table.tbl td:nth-child(2)::after{transition-delay:.07s}
+table.tbl td:nth-child(3)::after{transition-delay:.14s}
+table.tbl td:nth-child(4)::after{transition-delay:.21s}
+
 tr.kept td{box-shadow:inset 2px 0 0 var(--sql)}
-tr.kept td:first-child{position:relative}
-tr.dropped td{opacity:.3;text-decoration:line-through;text-decoration-color:var(--ink-faint)}
+tr.dropped td{opacity:.3}
+tr.dropped td::after{transform:scaleX(1)}
 tr.added td{box-shadow:inset 2px 0 0 var(--sql);background:var(--sql-soft)}
 tr.changed td{box-shadow:inset 2px 0 0 var(--amber);background:rgba(201,138,46,.12)}
-tr.removed td{opacity:.34;text-decoration:line-through;text-decoration-color:var(--red);
-  box-shadow:inset 2px 0 0 var(--red)}
+tr.removed td{opacity:.34;box-shadow:inset 2px 0 0 var(--red)}
+tr.removed td::after{background:var(--red);transform:scaleX(1)}
+
 td .was{color:var(--ink-faint);text-decoration:line-through;margin-right:7px}
-td .now{color:var(--amber);font-weight:700}
+td .now{color:var(--amber);font-weight:700;display:inline-block}
+/* the replacement value lands after the row has flagged itself amber */
+tr.changed .now{animation:valueIn .38s ease both .34s}
+@keyframes valueIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+
+/* a rule drawn across the table — the LIMIT cut, and the GROUP BY blocks */
+tr.cut td{padding:0;border:none;background:transparent}
+.cut-bar{display:flex;align-items:center;gap:9px;padding:4px 12px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--sql);
+  transform:scaleX(0);transform-origin:left;transition:transform .35s ease .1s}
+.cut-bar::before,.cut-bar::after{content:"";height:1px;background:var(--sql);flex:1;opacity:.45}
+tr.cut.in .cut-bar{transform:scaleX(1)}
+
+/* the six rows folding away as GROUP BY collapses them into three */
+table.tbl.folding tbody tr{opacity:.18;transform:translateY(7px);
+  transition:opacity .22s ease,transform .22s ease}
+
+/* the column ORDER BY sorted on */
+table.tbl th.sorted{color:var(--sql)}
 
 .caption{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-dim);
   padding:8px 12px;border-top:1px solid var(--line-soft);background:var(--panel-2)}
@@ -328,6 +372,18 @@ function rows(list, stateFn){
   return list.map(r=>({c:r, state: stateFn ? stateFn(r) : ""}));
 }
 
+/* ---------- timing ---------- */
+/* Steps are sequences, and a step can be abandoned halfway through — every
+   delayed piece of work carries the token of the step that scheduled it and
+   drops out if the reader has moved on. */
+const REDUCED = window.matchMedia
+  && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let seq = 0;
+
+function after(ms, fn, tok){
+  window.setTimeout(()=>{ if(tok===seq) fn(); }, REDUCED ? 0 : ms);
+}
+
 /* ---------- execution order ---------- */
 /* Written order and run order are different, which is the single most useful
    thing to know about SELECT. The strip below is the run order. */
@@ -376,7 +432,7 @@ const STEPS=[
   body:"Without ORDER BY a database is free to hand rows back in any order it likes — including a different order next time. If the sequence matters, say so.",
   view:()=>({
     name:"result",
-    cols:[CUST_COLS[1],CUST_COLS[2],CUST_COLS[3]],
+    cols:[CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
     rows:rows([CUSTOMERS[2],CUSTOMERS[0],CUSTOMERS[5]], ()=>"kept"),
     shape:"3 rows, sorted",
     caption:"<b>3 rows</b> — highest spend first"
@@ -393,8 +449,9 @@ const STEPS=[
   body:"LIMIT without ORDER BY gives you two arbitrary rows, not the top two. The pair only means “biggest spenders” because the sort ran first.",
   view:()=>({
     name:"result",
-    cols:[CUST_COLS[1],CUST_COLS[2],CUST_COLS[3]],
+    cols:[CUST_COLS[1],CUST_COLS[2],{...CUST_COLS[3],sorted:"desc"}],
     rows:[{c:CUSTOMERS[2],state:"kept"},{c:CUSTOMERS[0],state:"kept"},
+          {divider:"limit 2"},
           {c:CUSTOMERS[5],state:"dropped"}],
     shape:"2 rows",
     caption:"<b>2 rows</b> returned — the third was cut by the limit"
@@ -410,13 +467,22 @@ const STEPS=[
   view:()=>({
     name:"customers ⋈ orders",
     cols:[{k:"name",label:"c.name"},{k:"item",label:"o.item"},{k:"total",label:"o.total",num:true}],
-    rows:rows([
-      {name:"Ada",   item:"Keyboard",total:120},
-      {name:"Ada",   item:"Mouse",   total:45},
-      {name:"Grace", item:"Monitor", total:340},
-      {name:"Grace", item:"Lamp",    total:60},
-      {name:"Edsger",item:"Desk",    total:260}
-    ], ()=>"kept"),
+    rows:[
+      ...rows([
+        {name:"Ada",   item:"Keyboard",total:120},
+        {name:"Ada",   item:"Mouse",   total:45},
+        {name:"Grace", item:"Monitor", total:340},
+        {name:"Grace", item:"Lamp",    total:60},
+        {name:"Edsger",item:"Desk",    total:260}
+      ], ()=>"kept"),
+      // shown falling out, because rows vanishing is the surprising part of
+      // an inner join and a result set alone never shows you what left
+      ...rows([
+        {name:"Linus",  item:"—",total:"—"},
+        {name:"Alan",   item:"—",total:"—"},
+        {name:"Barbara",item:"—",total:"—"}
+      ], ()=>"dropped")
+    ],
     shape:"5 rows",
     caption:"<b>5 rows</b> — one per matching order; 3 customers matched nothing and dropped out",
     source:{
@@ -436,6 +502,23 @@ const STEPS=[
   exec:"GROUP BY",
   title:"GROUP BY turns rows into groups",
   body:"Six customers become three cities. Once you group, every column in SELECT must either be the thing you grouped by or an aggregate over the group — there is no single “name” for a bucket of three people.",
+  /* Shown before the result: the same six rows, sorted into their buckets.
+     Grouping is the hardest idea in this guide and a finished three-row
+     table hides the step that matters. */
+  pre:()=>({
+    name:"customers",
+    cols:[CUST_COLS[1],CUST_COLS[2],CUST_COLS[3]],
+    rows:[
+      {divider:"manila"},
+      {c:CUSTOMERS[0],state:"kept"},{c:CUSTOMERS[2],state:"kept"},{c:CUSTOMERS[5],state:"kept"},
+      {divider:"cebu"},
+      {c:CUSTOMERS[1],state:"kept"},{c:CUSTOMERS[4],state:"kept"},
+      {divider:"davao"},
+      {c:CUSTOMERS[3],state:"kept"}
+    ],
+    shape:"6 rows in 3 buckets",
+    caption:"rows sorted into buckets — each bucket is about to become one row"
+  }),
   view:()=>({
     name:"result",
     cols:[{k:"city",label:"city"},{k:"customers",label:"count(*)",num:true},
@@ -535,15 +618,36 @@ const STEPS=[
 /* ---------- rendering ---------- */
 const $=id=>document.getElementById(id);
 
+/* The clause this step introduces wipes in; the ones already applied are
+   simply there, because they were written on an earlier step. */
 function renderStatement(step){
   $("stmtLabel").textContent=step.label;
   $("stmtHint").textContent=step.hint||"";
-  $("stmtBody").innerHTML=step.sql.map(([kw,body,state])=>
-    `<div class="q-line ${state}"><span class="q-kw">${kw}</span><span class="q-body">${body}</span></div>`
-  ).join("");
+
+  const lastCurrent=step.sql.map(l=>l[2]).lastIndexOf("current");
+  let ci=0;
+
+  $("stmtBody").innerHTML=step.sql.map(([kw,body,state],i)=>{
+    let cls=state, style="";
+    if(state==="current"){
+      cls+=" typing"+(i===lastCurrent?" tip":"");
+      style=` style="transition-delay:${REDUCED?0:ci*230}ms"`;
+      ci++;
+    }
+    return `<div class="q-line ${cls}">`
+      +`<span class="q-kw">${kw}</span><span class="q-body"${style}>${body}</span></div>`;
+  }).join("");
+
+  // Two frames: one for the browser to accept the clipped starting state,
+  // one for it to notice the change and transition rather than jump.
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    $("stmtBody").querySelectorAll(".q-line.typing")
+      .forEach(el=>el.classList.remove("typing"));
+  }));
 }
 
-function renderExec(step){
+/* The strip lights left to right, which is the engine walking the clauses. */
+function renderExec(step, tok){
   const exec=$("exec");
   if(!step.exec){
     exec.classList.add("na");
@@ -551,11 +655,15 @@ function renderExec(step){
     return;
   }
   exec.classList.remove("na");
+
   const at=EXEC.indexOf(step.exec);
-  $("execPills").innerHTML=EXEC.map((name,i)=>{
-    const cls=i===at?"on":(i<at?"done":"");
-    return `<span class="e-pill ${cls}">${name}</span>`;
-  }).join(`<span class="e-arrow">›</span>`);
+  $("execPills").innerHTML=EXEC.map(name=>`<span class="e-pill">${name}</span>`)
+    .join(`<span class="e-arrow">›</span>`);
+
+  $("execPills").querySelectorAll(".e-pill").forEach((pill,i)=>{
+    if(i<at)  after(80+i*70, ()=>pill.classList.add("done"), tok);
+    if(i===at) after(140+at*70, ()=>pill.classList.add("on"), tok);
+  });
 }
 
 function cell(row,col){
@@ -567,13 +675,45 @@ function cell(row,col){
 
 function renderTable(spec){
   const head=`<thead><tr>${spec.cols.map(c=>
-    `<th class="${c.num?"num":""} ${c.dim?"dim":""}">${c.label}</th>`).join("")}</tr></thead>`;
+    `<th class="${c.num?"num":""} ${c.dim?"dim":""} ${c.sorted?"sorted":""}">`
+    +`${c.label}${c.sorted?" ▼":""}</th>`).join("")}</tr></thead>`;
+
   const body=`<tbody>${spec.rows.map(r=>
-    `<tr class="${r.state}">${spec.cols.map(c=>cell(r.c,c)).join("")}</tr>`).join("")}</tbody>`;
+    r.divider
+      ? `<tr class="cut"><td colspan="${spec.cols.length}">`
+        +`<div class="cut-bar"><span>${r.divider}</span></div></td></tr>`
+      : `<tr data-state="${r.state||""}">${spec.cols.map(c=>cell(r.c,c)).join("")}</tr>`
+  ).join("")}</tbody>`;
+
   return head+body;
 }
 
-function renderSource(spec){
+/* Rows land one after another, then take their state a beat later — the two
+   passes are what make a filter look like it is being applied. */
+function animateRows(table, tok, base){
+  base=base||0;
+  table.querySelectorAll("tbody tr").forEach((tr,i)=>{
+    after(base+i*55, ()=>tr.classList.add("in"), tok);
+    const state=tr.getAttribute("data-state");
+    if(state) after(base+230+i*70, ()=>tr.classList.add(state), tok);
+  });
+}
+
+function paintResult(spec, tok){
+  $("resultName").textContent=spec.name;
+  $("resultShape").textContent=spec.shape||"";
+
+  const table=$("resultTable");
+  table.className="tbl";
+  table.innerHTML=renderTable(spec);
+  animateRows(table, tok);
+
+  const cap=$("resultCaption");
+  cap.className="caption"+(spec.captionTone?" "+spec.captionTone:"");
+  cap.innerHTML=spec.caption||"";
+}
+
+function renderSource(spec, tok){
   const wrap=$("sourceWrap");
   if(!spec.source){ wrap.innerHTML=""; return; }
   const s=spec.source;
@@ -582,9 +722,11 @@ function renderSource(spec){
        <div class="tbl-h"><span class="t-name">${s.name}</span><span>${s.shape||""}</span></div>
        <div class="tbl-scroll"><table class="tbl">${renderTable(s)}</table></div>
      </div>`;
+  animateRows(wrap.querySelector("table"), tok);
 }
 
 function select(i){
+  const tok=++seq;          // abandons anything the previous step scheduled
   const step=STEPS[i];
   const spec=step.view();
 
@@ -592,15 +734,19 @@ function select(i){
     el.classList.toggle("active", j===i));
 
   renderStatement(step);
-  renderExec(step);
-  renderSource(spec);
+  renderExec(step, tok);
+  renderSource(spec, tok);
 
-  $("resultName").textContent=spec.name;
-  $("resultShape").textContent=spec.shape||"";
-  $("resultTable").innerHTML=renderTable(spec);
-  const cap=$("resultCaption");
-  cap.className="caption"+(spec.captionTone?" "+spec.captionTone:"");
-  cap.innerHTML=spec.caption||"";
+  // The intermediate state only reads as one if it can be held on screen —
+  // with motion reduced every delay is zero, so it would flash rather than
+  // teach, and the result is better shown directly.
+  if(step.pre && !REDUCED){
+    paintResult(step.pre(), tok);
+    after(1250, ()=>$("resultTable").classList.add("folding"), tok);
+    after(1500, ()=>paintResult(spec, tok), tok);
+  } else {
+    paintResult(spec, tok);
+  }
 
   $("explain").classList.toggle("write", !!step.write);
   $("exTitle").textContent=step.title;
