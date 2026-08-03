@@ -148,6 +148,19 @@ h1 .accent{color:var(--orange)}
 .node.moving{transition:transform .5s cubic-bezier(.5,0,.2,1),background .3s}
 .node.copied{animation:copyPulse .5s ease}
 @keyframes copyPulse{0%{background:rgba(78,185,106,.25)}100%{background:transparent}}
+/* floating ghost used by mv to slide a file between folders */
+.file-ghost{position:fixed;z-index:70;pointer-events:none;font-family:'JetBrains Mono',monospace;
+  font-size:14px;display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px;
+  background:var(--panel-lift);box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 0 1px var(--orange);
+  max-width:220px;overflow:hidden;white-space:nowrap}
+.file-ghost .icon{width:16px;height:16px;flex:none}
+.file-ghost .icon.file path{fill:var(--file)}
+.file-ghost .icon.folder path{fill:var(--folder)}
+.file-ghost .indent,.file-ghost .twig{display:none}
+.file-ghost .name{color:var(--ink)}
+.file-ghost.moving{transition:left .5s cubic-bezier(.5,0,.2,1),top .5s cubic-bezier(.5,0,.2,1),
+  opacity .5s ease,transform .5s ease}
+.file-ghost.copy{box-shadow:0 4px 16px rgba(0,0,0,.4),0 0 0 1px var(--green)}
 
 /* terminal */
 .terminal{border:1px solid var(--line);border-radius:10px;background:#0f0710;overflow:hidden}
@@ -412,6 +425,60 @@ function commitLocation(tree, herePath, toKey, tok){
   const dest=nodeByKey(toKey); if(dest) dest.classList.add("entered");
 }
 
+/* mv: slide a file from its current row to a destination folder row, then
+   commit the tree move. A floating ghost of the file travels between the two
+   screen positions (FLIP-style). Your location marker does NOT move — that's
+   the contrast with cd. */
+function glideFileToFolder(tree, fromKey, destFolderKey, commit, tok){
+  const fromRow=nodeByKey(fromKey), destRow=nodeByKey(destFolderKey);
+  if(!fromRow||!destRow){ commit(); return; }
+  const a=fromRow.getBoundingClientRect(), b=destRow.getBoundingClientRect();
+  const ghost=document.createElement("div");
+  ghost.className="file-ghost";
+  ghost.innerHTML=fromRow.innerHTML;
+  ghost.style.left=a.left+"px"; ghost.style.top=a.top+"px"; ghost.style.width=a.width+"px";
+  document.body.appendChild(ghost);
+  fromRow.classList.add("leaving");            // original collapses away
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(tok!==seqToken){ ghost.remove(); return; }
+    ghost.classList.add("moving");
+    ghost.style.left=(b.left+16)+"px"; ghost.style.top=b.top+"px"; ghost.style.opacity=".85";
+    ghost.style.transform="scale(.92)";
+  }));
+  setTimeout(()=>{
+    if(tok!==seqToken){ ghost.remove(); return; }
+    commit();                                   // tree now shows file in dest
+    const dest=nodeByKey(destFolderKey); if(dest) dest.classList.add("entered");
+    ghost.remove();
+  }, 560);
+}
+
+/* cp: peel a ghost copy off the original file and drop it onto the new
+   (already-committed) destination row, which starts hidden and springs in on
+   arrival. The original stays and pulses. */
+function peelCopy(srcKey, destKey, tok){
+  const srcRow=nodeByKey(srcKey), destRow=nodeByKey(destKey);
+  if(!destRow){ return; }
+  if(!srcRow){ destRow.classList.add("enter"); return; }
+  const a=srcRow.getBoundingClientRect(), b=destRow.getBoundingClientRect();
+  destRow.style.visibility="hidden";
+  const ghost=document.createElement("div");
+  ghost.className="file-ghost copy";
+  ghost.innerHTML=srcRow.innerHTML;
+  ghost.style.left=(a.left+8)+"px"; ghost.style.top=a.top+"px"; ghost.style.width=a.width+"px";
+  document.body.appendChild(ghost);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(tok!==seqToken){ ghost.remove(); destRow.style.visibility=""; return; }
+    ghost.classList.add("moving");
+    ghost.style.left=(b.left+8)+"px"; ghost.style.top=b.top+"px";
+  }));
+  setTimeout(()=>{
+    if(tok!==seqToken){ ghost.remove(); destRow.style.visibility=""; return; }
+    destRow.style.visibility=""; destRow.classList.add("enter");
+    ghost.remove();
+  }, 520);
+}
+
 /* ---------- COMMANDS ---------- */
 const HERE0=["user"];
 const COMMANDS=[
@@ -455,28 +522,31 @@ const COMMANDS=[
       },tok); } },
 
   { n:"06", verb:"cp", arg:"notes.txt backup.txt", title:"Copy a file",
-    body:"Duplicates a file. The original stays; a copy appears under the new name. Handy before risky edits.",
+    body:"Duplicates a file. The original stays put and pulses; a copy peels off under the new name. Handy before risky edits.",
     flow:["notes.txt","→","<span class='on'>backup.txt</span>"],
     render:(tok)=>{ const t=baseTree(); renderTree(t,["user"]); setPwd(["user"]);
       typeCommand("cp notes.txt backup.txt",["user"],()=>{
-        step(()=>{ const src=nodeByKey("user/notes.txt"); if(src) src.classList.add("copied");
-          t.children.push({name:"backup.txt",type:"file"}); renderTree(t,["user"]);
-          const s=nodeByKey("user/notes.txt"); if(s) s.classList.add("copied");
-          enterNode("user/backup.txt"); },300,tok);
+        step(()=>{
+          const src=nodeByKey("user/notes.txt"); if(src) src.classList.add("copied");
+          // commit the copy in the tree, then peel a ghost from original → copy
+          t.children.push({name:"backup.txt",type:"file"});
+          renderTree(t,["user"]);
+          const orig=nodeByKey("user/notes.txt"); if(orig) orig.classList.add("copied");
+          peelCopy("user/notes.txt","user/backup.txt",tok);
+        },300,tok);
       },tok); } },
 
   { n:"07", verb:"mv", arg:"notes.txt docs/", title:"Move / rename",
-    body:"Moves a file or folder to a new location — or renames it in place. Here notes.txt moves into docs/.",
+    body:"Moves a file to a new location (or renames it in place). Here notes.txt slides into docs/. Notice your \"you are here\" marker stays in home — mv moves a file, cd moves you.",
     flow:["home","→","<span class='on'>docs/</span>"],
     render:(tok)=>{ const t=baseTree(); renderTree(t,["user"]); setPwd(["user"]);
       typeCommand("mv notes.txt docs/",["user"],()=>{
         step(()=>{
-          leaveNode("user/notes.txt",()=>{
-            if(tok!==seqToken) return;
+          glideFileToFolder(t,"user/notes.txt","user/docs",()=>{
             t.children=t.children.filter(c=>c.name!=="notes.txt");
             const docs=t.children.find(c=>c.name==="docs"); docs.children.push({name:"notes.txt",type:"file"});
             renderTree(t,["user"]); enterNode("user/docs/notes.txt");
-          });
+          },tok);
         },260,tok);
       },tok); } },
 

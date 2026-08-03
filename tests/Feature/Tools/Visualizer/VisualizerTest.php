@@ -122,7 +122,12 @@ class VisualizerTest extends TestCase
      */
     public function test_no_guide_keeps_its_original_page_background(): void
     {
-        $foreign = ['#0d1117', '#161b22', '#1a0f18', '#2a1826', '#0a0e14', '#111823'];
+        $foreign = [
+            '#0d1117', '#161b22',                 // git
+            '#1a0f18', '#2a1826',                 // filesystem
+            '#0a0e14', '#111823',                 // docker
+            '#080b16', '#0f1424', '#141b30', '#0a0e1c',   // http
+        ];
 
         foreach ($this->guides() as $slug => $guide) {
             $html = $this->get(route('visualizer.guide', $slug))->assertOk()->getContent();
@@ -224,14 +229,24 @@ class VisualizerTest extends TestCase
         }
     }
 
-    /** Each masthead shows its product's real mark, not a hand-drawn stand-in. */
+    /**
+     * A guide about a product shows that product's real mark. A guide about
+     * something nobody owns — HTTP, say — has no logo registered and keeps a
+     * drawn glyph instead; what must never happen is a registered logo that
+     * the masthead ignores in favour of the stand-in it shipped with.
+     */
     public function test_every_guide_renders_its_registered_logo_in_the_masthead(): void
     {
         foreach ($this->guides() as $slug => $guide) {
-            $this->assertArrayHasKey('logo', $guide, "Guide [{$slug}] has no logo registered.");
+            $response = $this->get(route('visualizer.guide', $slug))->assertOk();
 
-            $this->get(route('visualizer.guide', $slug))
-                ->assertOk()
+            if (! isset($guide['logo'])) {
+                $response->assertSee('class="glyph"', false);
+
+                continue;
+            }
+
+            $response
                 ->assertSee($guide['logo'], false)
                 ->assertDontSee('<div class="glyph" aria-hidden="true">', false);
         }
