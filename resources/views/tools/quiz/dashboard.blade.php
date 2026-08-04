@@ -8,9 +8,9 @@
     </div>
 
     <div class="grid grid-cols-3 max-[820px]:grid-cols-1 gap-3.5 mb-5">
-        <x-stat-card label="Current Streak">12 <small class="text-[13px] text-text-muted font-normal">days</small></x-stat-card>
-        <x-stat-card label="Question Pool">184 <small class="text-[13px] text-text-muted font-normal">cards</small></x-stat-card>
-        <x-stat-card label="Avg. Recall">78<small class="text-[13px] text-text-muted font-normal">%</small></x-stat-card>
+        <x-stat-card label="Current Streak">{{ $streak }} <small class="text-[13px] text-text-muted font-normal">days</small></x-stat-card>
+        <x-stat-card label="Question Pool">{{ $poolCount }} <small class="text-[13px] text-text-muted font-normal">cards</small></x-stat-card>
+        <x-stat-card label="Avg. Recall">{{ $avgRecall }}<small class="text-[13px] text-text-muted font-normal">%</small></x-stat-card>
     </div>
 
     <div class="card p-[22px_24px] mb-5">
@@ -39,24 +39,34 @@
     @endif
 
     <x-section-label>Categories</x-section-label>
-    <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
-        @foreach ([
-            ['name' => 'Laravel', 'count' => 52, 'pct' => 82, 'gradient' => 'linear-gradient(90deg,#1a5f7a,#2e9cca)'],
-            ['name' => 'Vue / Blade', 'count' => 38, 'pct' => 64, 'gradient' => 'linear-gradient(90deg,#5c3a7a,#9b5fcf)'],
-            ['name' => 'Git', 'count' => 21, 'pct' => 91, 'gradient' => 'linear-gradient(90deg,var(--color-red-dim),var(--color-red))'],
-            ['name' => 'SQL', 'count' => 29, 'pct' => 47, 'gradient' => 'linear-gradient(90deg,#333,#666)'],
-            ['name' => 'JS Fundamentals', 'count' => 44, 'pct' => 73, 'gradient' => 'linear-gradient(90deg,#1a5f7a,#2e9cca)'],
-        ] as $category)
-            <div class="card p-[16px_18px] cursor-pointer transition-transform hover:-translate-y-0.5">
-                <div class="flex justify-between items-center mb-2.5">
-                    <span class="text-[13px] font-semibold">{{ $category['name'] }}</span>
-                    <span class="text-[10px] text-text-muted">{{ $category['count'] }} cards</span>
+    @if (count($categories))
+        @php
+            // Cycled, not per-category-stored — there's no "category color scheme"
+            // concept in the data, just a rotation so the grid isn't monochrome.
+            $gradients = [
+                'linear-gradient(90deg,#1a5f7a,#2e9cca)',
+                'linear-gradient(90deg,#5c3a7a,#9b5fcf)',
+                'linear-gradient(90deg,var(--color-red-dim),var(--color-red))',
+                'linear-gradient(90deg,#3a5c3a,#5fcf7a)',
+            ];
+        @endphp
+        <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+            @foreach ($categories as $i => $category)
+                <div class="card p-[16px_18px] cursor-pointer transition-transform hover:-translate-y-0.5">
+                    <div class="flex justify-between items-center mb-2.5">
+                        <span class="text-[13px] font-semibold">{{ $category['name'] }}</span>
+                        <span class="text-[10px] text-text-muted">{{ $category['count'] }} card{{ $category['count'] === 1 ? '' : 's' }}</span>
+                    </div>
+                    <div class="w-full h-[5px] rounded-full bg-white/6 overflow-hidden mb-1.5">
+                        <div class="h-full rounded-full" style="width:{{ $category['pct'] }}%; background:{{ $gradients[$i % count($gradients)] }}"></div>
+                    </div>
+                    <div class="text-[10px] text-text-muted">{{ $category['pct'] }}% mastery</div>
                 </div>
-                <div class="w-full h-[5px] rounded-full bg-white/6 overflow-hidden mb-1.5">
-                    <div class="h-full rounded-full" style="width:{{ $category['pct'] }}%; background:{{ $category['gradient'] }}"></div>
-                </div>
-                <div class="text-[10px] text-text-muted">{{ $category['pct'] }}% mastery</div>
-            </div>
-        @endforeach
-    </div>
+            @endforeach
+        </div>
+    @else
+        <div class="card p-6 text-text-muted text-sm text-center">
+            No categories yet — add one from Settings, or import some questions.
+        </div>
+    @endif
 </div>

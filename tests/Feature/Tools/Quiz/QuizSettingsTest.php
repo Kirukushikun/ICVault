@@ -6,6 +6,7 @@ use App\Tools\Quiz\Livewire\QuizSettings;
 use App\Tools\Quiz\Models\Attempt;
 use App\Tools\Quiz\Models\Category;
 use App\Tools\Quiz\Models\Question;
+use App\Tools\Quiz\Models\QuizPreference;
 use App\Tools\Quiz\Models\QuizSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -49,6 +50,22 @@ class QuizSettingsTest extends TestCase
         $response = Livewire::test(QuizSettings::class)->call('exportJson');
 
         $response->assertStatus(200);
+    }
+
+    public function test_export_csv_streams_a_download_of_the_question_pool(): void
+    {
+        $category = Category::factory()->create(['slug' => 'laravel']);
+        Question::factory()->fillBlank('job')->for($category)->create(['prompt' => 'dispatch() queues a ____']);
+
+        Livewire::test(QuizSettings::class)->call('exportCsv')->assertStatus(200);
+    }
+
+    public function test_export_markdown_streams_a_download_of_the_question_pool(): void
+    {
+        $category = Category::factory()->create(['slug' => 'laravel']);
+        Question::factory()->fillBlank('job')->for($category)->create(['prompt' => 'dispatch() queues a ____']);
+
+        Livewire::test(QuizSettings::class)->call('exportMarkdown')->assertStatus(200);
     }
 
     public function test_import_merges_questions_from_a_json_export(): void
@@ -197,5 +214,64 @@ class QuizSettingsTest extends TestCase
             ->assertSet('confirmingClear', false);
 
         $this->assertSame(0, QuizSession::count());
+    }
+
+    public function test_it_adds_a_category(): void
+    {
+        Livewire::test(QuizSettings::class)
+            ->set('newCategoryName', 'Docker')
+            ->set('newCategoryColor', '#1a5f7a')
+            ->call('addCategory')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('categories', ['name' => 'Docker', 'slug' => 'docker', 'color' => '#1a5f7a']);
+    }
+
+    public function test_it_rejects_a_duplicate_category_name(): void
+    {
+        Category::factory()->create(['name' => 'Docker']);
+
+        Livewire::test(QuizSettings::class)
+            ->set('newCategoryName', 'Docker')
+            ->call('addCategory')
+            ->assertHasErrors(['newCategoryName']);
+    }
+
+    public function test_it_deletes_a_category(): void
+    {
+        $category = Category::factory()->create();
+
+        Livewire::test(QuizSettings::class)->call('deleteCategory', $category->id);
+
+        $this->assertModelMissing($category);
+    }
+
+    /** Categories cascade-delete their questions — see the questions table migration. */
+    public function test_deleting_a_category_also_removes_its_questions(): void
+    {
+        $category = Category::factory()->create();
+        $question = Question::factory()->for($category)->create();
+
+        Livewire::test(QuizSettings::class)->call('deleteCategory', $category->id);
+
+        $this->assertModelMissing($question);
+    }
+
+    public function test_changing_a_preference_persists_it_immediately(): void
+    {
+        Livewire::test(QuizSettings::class)
+            ->set('prefShuffleOrder', false)
+            ->set('prefDailyQuota', 12);
+
+        $pref = QuizPreference::current();
+        $this->assertFalse($pref->shuffle_order);
+        $this->assertSame(12, $pref->daily_quota);
+    }
+
+    public function test_reset_streak_moves_the_streak_cutoff_to_now(): void
+    {
+        Livewire::test(QuizSettings::class)->call('resetStreak');
+
+        $this->assertNotNull(QuizPreference::current()->streak_broken_at);
     }
 }

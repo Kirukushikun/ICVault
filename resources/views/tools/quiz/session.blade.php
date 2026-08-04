@@ -54,10 +54,24 @@
 
             @if ($current)
                 <div class="card p-[28px_30px] mb-4.5">
-                    <span class="inline-block text-[9px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full mb-3.5
-                          @if ($current['diff'] === 'easy') bg-green/15 text-[#4fcf95]
-                          @elseif ($current['diff'] === 'medium') bg-amber/15 text-[#e0a94a]
-                          @else bg-red/15 text-[#ec5c86] @endif">{{ $current['diffLabel'] }}</span>
+                    <div class="flex items-center justify-between mb-3.5">
+                        @if ($showDifficulty)
+                            <span class="inline-block text-[9px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full
+                                  @if ($current['diff'] === 'easy') bg-green/15 text-[#4fcf95]
+                                  @elseif ($current['diff'] === 'medium') bg-amber/15 text-[#e0a94a]
+                                  @else bg-red/15 text-[#ec5c86] @endif">{{ $current['diffLabel'] }}</span>
+                        @else
+                            <span></span>
+                        @endif
+
+                        @if ($timedMode && ! $answered)
+                            <div wire:key="timer-{{ $index }}" x-data="{ secondsLeft: 60 }"
+                                 x-init="const t = setInterval(() => { secondsLeft--; if (secondsLeft <= 0) { clearInterval(t); $wire.submit(); } }, 1000); $cleanup(() => clearInterval(t))"
+                                 class="text-[11px] font-bold tabular-nums px-2.5 py-1 rounded-full border" :class="secondsLeft <= 10 ? 'border-red/50 text-[#ec5c86] bg-red/10' : 'border-border text-text-muted'">
+                                <span x-text="secondsLeft"></span>s
+                            </div>
+                        @endif
+                    </div>
                     <div class="text-[10px] text-text-muted tracking-[0.08em] uppercase mb-2.5">{{ $current['tag'] }}</div>
                     <div class="text-[17px] font-medium leading-[1.5] mb-5.5 [&_code]:font-mono [&_code]:text-sm [&_code]:bg-white/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded">{!! $current['question'] !!}</div>
 
@@ -68,7 +82,7 @@
                                      class="flex items-center gap-3 px-4 py-3.5 rounded-[10px] border-[1.5px] bg-white/2 text-[13px] cursor-pointer transition-all
                                         @if ($revealed && $opt === $current['answer']) border-green bg-green/12 text-[#4fcf95]
                                         @elseif ($revealed && $i === $selectedOption) border-red/60 bg-red/10 text-[#ec5c86]
-                                        @elseif (! $revealed && $selectedOption === $i) border-red bg-red/10
+                                        @elseif (! $answered && $selectedOption === $i) border-red bg-red/10
                                         @else border-border @endif">
                                     <span class="w-[22px] h-[22px] rounded-md flex items-center justify-center text-[10.5px] font-bold bg-white/6 shrink-0">{{ chr(65 + $i) }}</span>
                                     <span>{{ $opt }}</span>
@@ -76,7 +90,7 @@
                             @endforeach
                         </div>
                     @elseif ($current['type'] === 'fill_blank')
-                        <input type="text" wire:model="fillValue" @disabled($revealed) placeholder="Type your answer…"
+                        <input type="text" wire:model="fillValue" @disabled($answered) placeholder="Type your answer…"
                                class="w-full bg-white/3 border-[1.5px] rounded-[10px] px-4 py-3.5 text-white font-mono text-[13px] focus:outline-none
                                   {{ ! $revealed ? 'border-border focus:border-red' : ($lastCorrect ? 'border-green bg-green/8 text-[#4fcf95]' : 'border-red/50 bg-red/7 text-[#ec5c86]') }}">
                     @else
@@ -86,7 +100,7 @@
                                 <span class="w-2.5 h-2.5 rounded-full bg-[#febc2e]"></span>
                                 <span class="w-2.5 h-2.5 rounded-full bg-[#28c840]"></span>
                             </div>
-                            <textarea wire:model="codeValue" @disabled($revealed) rows="5"
+                            <textarea wire:model="codeValue" @disabled($answered) rows="5"
                                       class="w-full bg-transparent px-4.5 py-4 font-mono text-[13px] leading-[1.7] text-white/85 focus:outline-none resize-none"></textarea>
                         </div>
                     @endif
@@ -115,7 +129,13 @@
 
             <div class="flex justify-between items-center">
                 <button wire:click="skip" class="px-[22px] py-2.5 rounded-[10px] text-xs font-semibold tracking-[0.05em] uppercase border-[1.5px] border-border text-text-muted hover:border-white/25 hover:text-white transition-all">Skip</button>
-                <button wire:click="{{ $revealed ? 'next' : 'submit' }}" class="px-[22px] py-2.5 rounded-[10px] text-white text-xs font-semibold tracking-[0.05em] uppercase transition-all hover:-translate-y-0.5" style="background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))">{{ $revealed ? 'Next Question →' : 'Submit Answer' }}</button>
+                @if ($revealed)
+                    <button wire:click="next" class="px-[22px] py-2.5 rounded-[10px] text-white text-xs font-semibold tracking-[0.05em] uppercase transition-all hover:-translate-y-0.5" style="background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))">Next Question →</button>
+                @elseif ($answered)
+                    <button wire:click="reveal" class="px-[22px] py-2.5 rounded-[10px] text-white text-xs font-semibold tracking-[0.05em] uppercase transition-all hover:-translate-y-0.5" style="background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))">Reveal Answer</button>
+                @else
+                    <button wire:click="submit" class="px-[22px] py-2.5 rounded-[10px] text-white text-xs font-semibold tracking-[0.05em] uppercase transition-all hover:-translate-y-0.5" style="background:linear-gradient(90deg,var(--color-red-dim),var(--color-red))">Submit Answer</button>
+                @endif
             </div>
         </div>
     @endif

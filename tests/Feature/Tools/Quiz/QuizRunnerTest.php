@@ -7,6 +7,7 @@ use App\Tools\Quiz\Livewire\QuizRunner;
 use App\Tools\Quiz\Models\Attempt;
 use App\Tools\Quiz\Models\Category;
 use App\Tools\Quiz\Models\Question;
+use App\Tools\Quiz\Models\QuizPreference;
 use App\Tools\Quiz\Models\QuizSession as QuizSessionModel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -162,5 +163,68 @@ class QuizRunnerTest extends TestCase
             ->call('exit')
             ->assertSet('screen', 'setup')
             ->assertSet('mode', null);
+    }
+
+    public function test_default_mode_preference_preselects_a_mode_on_mount(): void
+    {
+        QuizPreference::current()->update(['default_mode' => 'mc']);
+
+        Livewire::test(QuizRunner::class)->assertSet('mode', 'mc');
+    }
+
+    public function test_shuffle_order_off_serves_questions_oldest_first(): void
+    {
+        QuizPreference::current()->update(['shuffle_order' => false]);
+
+        $category = Category::factory()->create();
+        $first = Question::factory()->for($category)->fillBlank('a')->create();
+        $second = Question::factory()->for($category)->fillBlank('b')->create();
+
+        Livewire::test(QuizRunner::class)
+            ->call('selectMode', 'fill')
+            ->call('start')
+            ->assertSet('pool.0.id', $first->id)
+            ->assertSet('pool.1.id', $second->id);
+    }
+
+    /**
+     * With auto-reveal off, the answer is graded (Attempt logged) the moment
+     * `submit()` runs, but the correctness panel stays hidden until an
+     * explicit `reveal()` — grading can't wait on that, or the question would
+     * never move to "answered" at all.
+     */
+    public function test_auto_reveal_off_grades_immediately_but_waits_to_show_the_answer(): void
+    {
+        QuizPreference::current()->update(['auto_reveal' => false]);
+
+        $category = Category::factory()->create();
+        $question = Question::factory()->for($category)->fillBlank('inside')->create();
+
+        Livewire::test(QuizRunner::class)
+            ->call('selectMode', 'fill')
+            ->call('start')
+            ->set('fillValue', 'inside')
+            ->call('submit')
+            ->assertSet('answered', true)
+            ->assertSet('revealed', false)
+            ->call('reveal')
+            ->assertSet('revealed', true);
+
+        $this->assertDatabaseHas('attempts', ['question_id' => $question->id, 'correct' => true]);
+    }
+
+    public function test_submitting_twice_does_not_double_log_an_attempt(): void
+    {
+        $category = Category::factory()->create();
+        Question::factory()->for($category)->fillBlank('inside')->create();
+
+        Livewire::test(QuizRunner::class)
+            ->call('selectMode', 'fill')
+            ->call('start')
+            ->set('fillValue', 'inside')
+            ->call('submit')
+            ->call('submit');
+
+        $this->assertSame(1, Attempt::count());
     }
 }

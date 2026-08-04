@@ -1,4 +1,4 @@
-<div x-data="quizSettings()">
+<div>
     <div class="mb-7">
         <div class="text-[10px] font-semibold tracking-[0.25em] uppercase text-red mb-1.5">Quiz Vault</div>
         <div class="font-display text-[28px] font-bold tracking-wide">Quiz Settings</div>
@@ -16,16 +16,16 @@
                 <div class="w-7 text-center text-base opacity-75">⇄</div>
                 <div class="flex-1">
                     <div class="text-[13.5px] font-medium">Default Mode</div>
-                    <div class="text-[11px] text-text-muted">Which mode opens when you start a session</div>
+                    <div class="text-[11px] text-text-muted">Which mode is preselected when you open a session</div>
                 </div>
             </div>
             <div class="flex gap-2 flex-wrap pl-11">
-                <template x-for="opt in ['Shuffle', 'Multiple Choice', 'Fill in the Blank', 'Write the Code']" :key="opt">
-                    <button @click="defaultMode = opt; toast('Default mode updated')"
+                @foreach (['shuffle' => 'Shuffle', 'mc' => 'Multiple Choice', 'fill' => 'Fill in the Blank', 'code' => 'Write the Code'] as $value => $label)
+                    <button wire:click="$set('prefDefaultMode', '{{ $value }}')"
                             class="text-[10.5px] font-semibold tracking-[0.07em] uppercase px-3.5 py-1.5 rounded-full border-[1.5px] transition-all"
-                            :class="defaultMode === opt ? 'bg-red/12 border-red/40 text-[#ec5c86]' : 'border-border text-text-muted hover:border-white/18 hover:text-white'"
-                            x-text="opt"></button>
-                </template>
+                            @class(['bg-red/12 border-red/40 text-[#ec5c86]' => $prefDefaultMode === $value, 'border-border text-text-muted hover:border-white/18 hover:text-white' => $prefDefaultMode !== $value])
+                    >{{ $label }}</button>
+                @endforeach
             </div>
         </div>
 
@@ -33,12 +33,12 @@
             <div class="w-7 text-center text-base opacity-75">📋</div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Daily Quota</div>
-                <div class="text-[11px] text-text-muted">Number of questions to complete each day</div>
+                <div class="text-[11px] text-text-muted">Number of questions to complete each day — applies from tomorrow's session onward</div>
             </div>
             <div class="flex items-center gap-2.5">
-                <button @click="quotaVal = Math.max(1, quotaVal - 1)" class="w-[26px] h-[26px] rounded-full border border-border text-text-muted hover:border-white/22 hover:text-white flex items-center justify-center">−</button>
-                <span class="text-sm font-semibold min-w-[22px] text-center" x-text="quotaVal"></span>
-                <button @click="quotaVal = Math.min(30, quotaVal + 1)" class="w-[26px] h-[26px] rounded-full border border-border text-text-muted hover:border-white/22 hover:text-white flex items-center justify-center">+</button>
+                <button wire:click="$set('prefDailyQuota', {{ max(1, $prefDailyQuota - 1) }})" class="w-[26px] h-[26px] rounded-full border border-border text-text-muted hover:border-white/22 hover:text-white flex items-center justify-center">−</button>
+                <span class="text-sm font-semibold min-w-[22px] text-center">{{ $prefDailyQuota }}</span>
+                <button wire:click="$set('prefDailyQuota', {{ min(30, $prefDailyQuota + 1) }})" class="w-[26px] h-[26px] rounded-full border border-border text-text-muted hover:border-white/22 hover:text-white flex items-center justify-center">+</button>
             </div>
         </div>
 
@@ -46,18 +46,18 @@
             <div class="w-7 text-center text-base opacity-75">💡</div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Auto-reveal Answers</div>
-                <div class="text-[11px] text-text-muted">Show the correct answer after every submission</div>
+                <div class="text-[11px] text-text-muted">Show the correct answer immediately on submit, instead of requiring a separate "Reveal" step</div>
             </div>
-            <x-toggle-switch model="autoReveal" />
+            <x-toggle-switch wire:model.live="prefAutoReveal" />
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
             <div class="w-7 text-center text-base opacity-75">🎲</div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Shuffle Question Order</div>
-                <div class="text-[11px] text-text-muted">Randomize the sequence instead of serving in order</div>
+                <div class="text-[11px] text-text-muted">Randomize the sequence instead of serving oldest-first</div>
             </div>
-            <x-toggle-switch model="shuffleOrder" />
+            <x-toggle-switch wire:model.live="prefShuffleOrder" />
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
@@ -66,22 +66,54 @@
                 <div class="text-[13.5px] font-medium">Show Difficulty Badge</div>
                 <div class="text-[11px] text-text-muted">Display Easy / Medium / Hard label on each question</div>
             </div>
-            <x-toggle-switch model="showDifficulty" />
+            <x-toggle-switch wire:model.live="prefShowDifficulty" />
         </div>
 
         <div class="flex items-center gap-4 py-3.5">
             <div class="w-7 text-center text-base opacity-75">⏱</div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Timed Mode</div>
-                <div class="text-[11px] text-text-muted">Each question has a 60-second countdown</div>
+                <div class="text-[11px] text-text-muted">Each question has a 60-second countdown that auto-submits when it runs out</div>
             </div>
-            <x-toggle-switch model="timedMode" />
+            <x-toggle-switch wire:model.live="prefTimedMode" />
         </div>
+    </div>
+
+    {{-- Categories --}}
+    <div class="mb-10">
+        <div class="flex items-center gap-3.5 text-[9.5px] font-bold tracking-[0.22em] uppercase text-white/28 mb-5.5 after:content-[''] after:flex-1 after:h-px after:bg-border">Categories</div>
+
+        <div class="flex flex-col gap-1.5 mb-4">
+            @forelse ($categories as $category)
+                <div class="flex items-center gap-3 py-2 px-3 rounded-lg border border-white/5" wire:key="category-{{ $category->id }}">
+                    <span class="w-3 h-3 rounded-full shrink-0" style="background:{{ $category->color }}"></span>
+                    <span class="text-[13px] font-medium flex-1">{{ $category->name }}</span>
+                    <span class="text-[11px] text-text-muted">{{ $category->questions_count }} question{{ $category->questions_count === 1 ? '' : 's' }}</span>
+                    <button
+                        wire:click="deleteCategory({{ $category->id }})"
+                        wire:confirm="Delete '{{ $category->name }}'?{{ $category->questions_count ? ' This also deletes its '.$category->questions_count.' question(s).' : '' }}"
+                        class="text-[11px] text-red/70 hover:text-red shrink-0"
+                    >Delete</button>
+                </div>
+            @empty
+                <div class="text-[12px] text-text-muted">No categories yet.</div>
+            @endforelse
+        </div>
+
+        <form wire:submit="addCategory" class="flex items-center gap-2.5 flex-wrap">
+            <input type="color" wire:model="newCategoryColor" class="w-9 h-9 rounded-lg border border-border bg-transparent cursor-pointer p-0.5" />
+            <input type="text" wire:model="newCategoryName" placeholder="New category name…"
+                   class="flex-1 min-w-[180px] bg-transparent border border-border rounded-lg px-3.5 py-2 text-[12.5px] text-white placeholder:text-text-muted focus:outline-none focus:border-red/50" />
+            <button type="submit" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/45 bg-red/13 text-[#ec5c86] hover:border-red hover:bg-red/28 hover:text-white transition-colors">Add Category</button>
+        </form>
+        @error('newCategoryName') <div class="text-[11px] text-[#ec5c86] mt-2">{{ $message }}</div> @enderror
+        @error('newCategoryColor') <div class="text-[11px] text-[#ec5c86] mt-2">{{ $message }}</div> @enderror
     </div>
 
     {{-- Notifications --}}
     <div class="mb-10">
-        <div class="flex items-center gap-3.5 text-[9.5px] font-bold tracking-[0.22em] uppercase text-white/28 mb-5.5 after:content-[''] after:flex-1 after:h-px after:bg-border">Notifications</div>
+        <div class="flex items-center gap-3.5 text-[9.5px] font-bold tracking-[0.22em] uppercase text-white/28 mb-2 after:content-[''] after:flex-1 after:h-px after:bg-border">Notifications</div>
+        <div class="text-[11px] text-text-muted mb-3.5">Your choice is saved, but delivery isn't wired up yet — these don't send anything until a channel (email, browser push) is configured.</div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
             <div class="w-7 text-center text-base opacity-75">🔥</div>
@@ -89,7 +121,7 @@
                 <div class="text-[13.5px] font-medium">Streak Reminder</div>
                 <div class="text-[11px] text-text-muted">Alert when you haven't answered today's quota yet</div>
             </div>
-            <x-toggle-switch model="streakReminder" />
+            <x-toggle-switch wire:model.live="prefStreakReminder" />
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
@@ -98,7 +130,7 @@
                 <div class="text-[13.5px] font-medium">Weekly Summary</div>
                 <div class="text-[11px] text-text-muted">Send a recap of recall rate and mastery progress every Monday</div>
             </div>
-            <x-toggle-switch model="weeklySummary" />
+            <x-toggle-switch wire:model.live="prefWeeklySummary" />
         </div>
 
         <div class="flex items-center gap-4 py-3.5">
@@ -107,7 +139,7 @@
                 <div class="text-[13.5px] font-medium">New Questions Added</div>
                 <div class="text-[11px] text-text-muted">Notify when the import pipeline generates new cards</div>
             </div>
-            <x-toggle-switch model="newQuestionsNotif" />
+            <x-toggle-switch wire:model.live="prefNewQuestionsNotif" />
         </div>
     </div>
 
@@ -133,10 +165,10 @@
                 <button wire:click="exportJson" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-cyan-400/35 hover:bg-cyan-400/5 hover:text-white transition-colors">
                     <span class="text-[9px] font-bold tracking-[0.1em] px-1.5 py-0.5 rounded bg-cyan-400/14 text-cyan-400">JSON</span> Full Backup
                 </button>
-                <button @click="toast('Exported as CSV')" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-green/35 hover:bg-green/5 hover:text-white transition-colors">
+                <button wire:click="exportCsv" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-green/35 hover:bg-green/5 hover:text-white transition-colors">
                     <span class="text-[9px] font-bold tracking-[0.1em] px-1.5 py-0.5 rounded bg-green/14 text-[#4fcf95]">CSV</span> Questions Only
                 </button>
-                <button @click="toast('Exported as Markdown')" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-red/35 hover:bg-red/5 hover:text-[#ec5c86] transition-colors">
+                <button wire:click="exportMarkdown" class="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 bg-white/3 text-xs font-semibold text-text-muted hover:border-red/35 hover:bg-red/5 hover:text-[#ec5c86] transition-colors">
                     <span class="text-[9px] font-bold tracking-[0.1em] px-1.5 py-0.5 rounded bg-red/14 text-[#ec5c86]">.md</span> Obsidian Format
                 </button>
             </div>
@@ -205,7 +237,7 @@
                 <div class="text-[13.5px] font-medium">Reset Streak</div>
                 <div class="text-[11px] text-text-muted">Set your current streak back to zero. This can't be undone.</div>
             </div>
-            <button @click="toast('Streak reset')" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/30 bg-red/8 text-red/75 hover:border-red/65 hover:bg-red/18 hover:text-[#ec5c86] transition-colors">Reset Streak</button>
+            <button wire:click="resetStreak" wire:confirm="Reset your current streak to zero?" class="shrink-0 text-[11px] font-bold tracking-[0.09em] uppercase px-4 py-2 rounded-lg border-[1.5px] border-red/30 bg-red/8 text-red/75 hover:border-red/65 hover:bg-red/18 hover:text-[#ec5c86] transition-colors">Reset Streak</button>
         </div>
         <div class="flex flex-col gap-0 py-3.5 border-b border-white/5">
             <div class="flex items-center gap-4">
@@ -247,22 +279,3 @@
         </div>
     </div>
 </div>
-
-@script
-<script>
-    Alpine.data('quizSettings', () => ({
-        defaultMode: 'Shuffle',
-        quotaVal: 8,
-        autoReveal: true,
-        shuffleOrder: true,
-        showDifficulty: true,
-        timedMode: false,
-        streakReminder: true,
-        weeklySummary: true,
-        newQuestionsNotif: false,
-        toast(message) {
-            window.dispatchEvent(new CustomEvent('toast', { detail: { message: `✓ ${message}` } }));
-        },
-    }));
-</script>
-@endscript

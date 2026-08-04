@@ -5,6 +5,7 @@ namespace App\Tools\Quiz\Livewire;
 use App\Tools\Quiz\Enums\QuestionType;
 use App\Tools\Quiz\Models\Attempt;
 use App\Tools\Quiz\Models\Question;
+use App\Tools\Quiz\Models\QuizPreference;
 use App\Tools\Quiz\Models\QuizSession as QuizSessionModel;
 use App\Tools\Quiz\Services\MasteryService;
 use Livewire\Attributes\Layout;
@@ -22,6 +23,10 @@ class QuizRunner extends Component
 
     public int $index = 0;
 
+    /** True once the current question has been graded — locks input, whether or not it's shown yet. */
+    public bool $answered = false;
+
+    /** True once the correctness/explanation panel is actually on screen — see `$autoReveal`. */
     public bool $revealed = false;
 
     public ?int $selectedOption = null;
@@ -33,6 +38,14 @@ class QuizRunner extends Component
     public bool $lastCorrect = false;
 
     public int $quizSessionId;
+
+    public bool $shuffleOrder = true;
+
+    public bool $showDifficulty = true;
+
+    public bool $autoReveal = true;
+
+    public bool $timedMode = false;
 
     private const array MODE_TYPE = [
         'mc' => QuestionType::MultipleChoice,
@@ -49,7 +62,17 @@ class QuizRunner extends Component
 
     public function mount(): void
     {
-        $this->quizSessionId = QuizSessionModel::today()->id;
+        $pref = QuizPreference::current();
+
+        $this->quizSessionId = QuizSessionModel::today($pref->daily_quota)->id;
+        $this->shuffleOrder = $pref->shuffle_order;
+        $this->showDifficulty = $pref->show_difficulty;
+        $this->autoReveal = $pref->auto_reveal;
+        $this->timedMode = $pref->timed_mode;
+
+        // Preselected, not forced — the reader still has to hit Start, so a
+        // stale/removed default never locks them out of picking another mode.
+        $this->mode = array_key_exists($pref->default_mode, self::MODE_META) ? $pref->default_mode : null;
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -91,7 +114,13 @@ class QuizRunner extends Component
             $query->where('type', self::MODE_TYPE[$this->mode]);
         }
 
-        $this->pool = $query->inRandomOrder()->get()->map(fn (Question $q) => [
+        if ($this->shuffleOrder) {
+            $query->inRandomOrder();
+        } else {
+            $query->oldest();
+        }
+
+        $this->pool = $query->get()->map(fn (Question $q) => [
             'id' => $q->id,
             'type' => $q->type->value,
             'diff' => $q->difficulty->value,
@@ -123,7 +152,7 @@ class QuizRunner extends Component
 
     public function selectOption(int $i): void
     {
-        if (! $this->revealed) {
+        if (! $this->answered) {
             $this->selectedOption = $i;
         }
     }
@@ -132,7 +161,7 @@ class QuizRunner extends Component
     {
         $current = $this->currentQuestion();
 
-        if ($this->revealed || ! $current) {
+        if ($this->answered || ! $current) {
             return;
         }
 
@@ -157,7 +186,20 @@ class QuizRunner extends Component
         // Attempt/mastery change, matching the mockup's neutral "◆ Reference Answer".
         QuizSessionModel::find($this->quizSessionId)?->increment('completed_count');
 
-        $this->revealed = true;
+        $this->answered = true;
+
+        // With auto-reveal off, grading still happens now (skipping it would
+        // let a reader stall the question forever) — only the on-screen
+        // correctness/explanation panel waits for an explicit `reveal()`.
+        $this->revealed = $this->autoReveal;
+    }
+
+    /** Shows the correctness/explanation panel for an already-graded question — see `$autoReveal`. */
+    public function reveal(): void
+    {
+        if ($this->answered) {
+            $this->revealed = true;
+        }
     }
 
     public function next(): void
@@ -173,6 +215,7 @@ class QuizRunner extends Component
 
     private function resetAnswerState(): void
     {
+        $this->answered = false;
         $this->revealed = false;
         $this->selectedOption = null;
         $this->fillValue = '';
