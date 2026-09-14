@@ -1,6 +1,6 @@
 <div>
     <div class="mb-7">
-        <div class="text-[10px] font-semibold tracking-[0.25em] uppercase text-red mb-1.5">Concept Visualizer</div>
+        <div class="text-[10px] font-semibold tracking-[0.25em] uppercase text-red mb-1.5">Concept Vault</div>
         <div class="font-display text-[28px] font-bold tracking-wide">Field Guides</div>
         <div class="text-[12.5px] text-text-muted mt-1.5 font-light max-w-[560px]">
             Step-by-step walkthroughs of a single topic. Each guide is hand-built, so it can show the thing

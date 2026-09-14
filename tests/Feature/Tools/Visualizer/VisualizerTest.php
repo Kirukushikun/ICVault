@@ -78,7 +78,7 @@ class VisualizerTest extends TestCase
                 ->assertSee('images/ic-logo.png', false)
                 ->assertSee(route('hub'), false)
                 ->assertSee(route('visualizer.index'), false)
-                ->assertSee('Concept Visualizer', false)
+                ->assertSee('Concept Vault', false)
                 ->assertSee($guide['title'], false);
         }
     }

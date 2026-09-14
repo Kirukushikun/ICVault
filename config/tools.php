@@ -47,7 +47,7 @@ return [
     ],
 
     'visualizer' => [
-        'name' => 'Concept Visualizer',
+        'name' => 'Concept Vault',
         'tagline' => 'Interactive, step-by-step walkthroughs of a topic — built as hand-authored field guides.',
         'icon' => '◈',
         'accent' => '#2E9CCA',
