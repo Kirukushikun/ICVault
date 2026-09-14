@@ -13,7 +13,7 @@
 
         <div class="flex flex-col items-start gap-2.5 py-3.5 border-b border-white/5">
             <div class="flex items-center gap-4 w-full">
-                <div class="w-7 text-center text-base opacity-75">⇄</div>
+                <div class="w-7 flex justify-center opacity-75"><x-lucide-arrow-left-right class="w-[18px] h-[18px]" /></div>
                 <div class="flex-1">
                     <div class="text-[13.5px] font-medium">Default Mode</div>
                     <div class="text-[11px] text-text-muted">Which mode is preselected when you open a session</div>
@@ -30,7 +30,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">📋</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-clipboard-list class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Daily Quota</div>
                 <div class="text-[11px] text-text-muted">Number of questions to complete each day — applies from tomorrow's session onward</div>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">💡</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-lightbulb class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Auto-reveal Answers</div>
                 <div class="text-[11px] text-text-muted">Show the correct answer immediately on submit, instead of requiring a separate "Reveal" step</div>
@@ -52,7 +52,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">🎲</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-dices class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Shuffle Question Order</div>
                 <div class="text-[11px] text-text-muted">Randomize the sequence instead of serving oldest-first</div>
@@ -61,7 +61,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">🏷</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-tag class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Show Difficulty Badge</div>
                 <div class="text-[11px] text-text-muted">Display Easy / Medium / Hard label on each question</div>
@@ -70,7 +70,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5">
-            <div class="w-7 text-center text-base opacity-75">⏱</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-timer class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Timed Mode</div>
                 <div class="text-[11px] text-text-muted">Each question has a 60-second countdown that auto-submits when it runs out</div>
@@ -116,7 +116,7 @@
         <div class="text-[11px] text-text-muted mb-3.5">Your choice is saved, but delivery isn't wired up yet — these don't send anything until a channel (email, browser push) is configured.</div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">🔥</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-flame class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Streak Reminder</div>
                 <div class="text-[11px] text-text-muted">Alert when you haven't answered today's quota yet</div>
@@ -125,7 +125,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5 border-b border-white/5">
-            <div class="w-7 text-center text-base opacity-75">📊</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-bar-chart-3 class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">Weekly Summary</div>
                 <div class="text-[11px] text-text-muted">Send a recap of recall rate and mastery progress every Monday</div>
@@ -134,7 +134,7 @@
         </div>
 
         <div class="flex items-center gap-4 py-3.5">
-            <div class="w-7 text-center text-base opacity-75">🆕</div>
+            <div class="w-7 flex justify-center opacity-75"><x-lucide-sparkles class="w-[18px] h-[18px]" /></div>
             <div class="flex-1">
                 <div class="text-[13.5px] font-medium">New Questions Added</div>
                 <div class="text-[11px] text-text-muted">Notify when the import pipeline generates new cards</div>
@@ -149,7 +149,7 @@
 
         <div class="flex flex-col items-start gap-0 pb-5.5">
             <div class="flex items-center gap-4 w-full mb-2.5">
-                <div class="w-7 text-center text-base opacity-75">💾</div>
+                <div class="w-7 flex justify-center opacity-75"><x-lucide-download class="w-[18px] h-[18px]" /></div>
                 <div class="flex-1">
                     <div class="text-[13.5px] font-medium">Export Pool</div>
                     <div class="text-[11px] text-text-muted">Download your question pool as JSON — doubles as a portable backup</div>
@@ -176,7 +176,7 @@
 
         <div class="flex flex-col items-start gap-0">
             <div class="flex items-center gap-4 w-full mb-2.5">
-                <div class="w-7 text-center text-base opacity-75">📂</div>
+                <div class="w-7 flex justify-center opacity-75"><x-lucide-folder-open class="w-[18px] h-[18px]" /></div>
                 <div class="flex-1">
                     <div class="text-[13.5px] font-medium">Import / Restore</div>
                     <div class="text-[11px] text-text-muted">Upload a previous vault export or import questions from another format</div>
@@ -195,9 +195,9 @@
 
             @if ($importFile)
                 <div class="flex items-center gap-2.5 mt-2.5 ml-11 px-3.5 py-2 rounded-lg bg-red/6 border border-red/20 text-xs w-fit">
-                    <span>📄</span>
+                    <x-lucide-file-text class="w-3.5 h-3.5" />
                     <span class="font-medium">{{ $importFile->getClientOriginalName() }}</span>
-                    <button wire:click="$set('importFile', null)" class="text-text-muted hover:text-[#ec5c86] ml-1">✕</button>
+                    <button wire:click="$set('importFile', null)" class="text-text-muted hover:text-[#ec5c86] ml-1"><x-lucide-x class="w-3.5 h-3.5" /></button>
                 </div>
             @endif
 
