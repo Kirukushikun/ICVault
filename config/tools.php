@@ -28,7 +28,7 @@ return [
     'quiz' => [
         'name' => 'Quiz Vault',
         'tagline' => 'Spaced-recall drills across your knowledge pool — multiple choice, fill-in, write-the-code.',
-        'icon' => '▣',
+        'icon' => 'brain-circuit',
         'accent' => '#C3073F',
         'route' => 'quiz.dashboard',
         'route_pattern' => 'quiz.*',
@@ -39,18 +39,18 @@ return [
 
         // Inner pages, shown nested in the sidebar while this tool is open.
         'nav' => [
-            ['label' => 'Dashboard', 'route' => 'quiz.dashboard', 'icon' => '◆'],
-            ['label' => 'Quiz Session', 'route' => 'quiz.session', 'icon' => '▣'],
-            ['label' => 'Import & Logs', 'route' => 'quiz.import', 'icon' => '⇩'],
-            ['label' => 'Library', 'route' => 'quiz.library', 'icon' => '▤'],
-            ['label' => 'Quiz Settings', 'route' => 'quiz.settings', 'icon' => '⚙'],
+            ['label' => 'Dashboard', 'route' => 'quiz.dashboard', 'icon' => 'gauge'],
+            ['label' => 'Quiz Session', 'route' => 'quiz.session', 'icon' => 'zap'],
+            ['label' => 'Import & Logs', 'route' => 'quiz.import', 'icon' => 'upload'],
+            ['label' => 'Library', 'route' => 'quiz.library', 'icon' => 'library'],
+            ['label' => 'Quiz Settings', 'route' => 'quiz.settings', 'icon' => 'sliders-horizontal'],
         ],
     ],
 
     'visualizer' => [
         'name' => 'Concept Vault',
         'tagline' => 'Interactive, step-by-step walkthroughs of a topic — built as hand-authored field guides.',
-        'icon' => '◈',
+        'icon' => 'route',
         'accent' => '#2E9CCA',
         'route' => 'visualizer.index',
         'route_pattern' => 'visualizer.*',
@@ -62,7 +62,7 @@ return [
     'lab' => [
         'name' => 'Lab Vault',
         'tagline' => 'Loose mini-systems parked here — static pages and localStorage prototypes, some destined for a real backing store.',
-        'icon' => '⚗',
+        'icon' => 'flask-conical',
         'accent' => '#7C5CFC',
         'route' => 'lab.index',
         'route_pattern' => 'lab.*',

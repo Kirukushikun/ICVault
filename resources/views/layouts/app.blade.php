@@ -34,7 +34,7 @@
             <div class="flex flex-col gap-1 max-[820px]:flex-row">
                 <div class="text-[9px] font-bold tracking-[0.18em] uppercase text-white/25 px-3 mb-1 max-[820px]:hidden">Overview</div>
                 <a href="{{ route('hub') }}" wire:navigate class="nav-item {{ request()->routeIs('hub') ? 'active' : '' }}">
-                    <span class="w-4 text-center opacity-90">⌂</span> Hub
+                    <span class="w-4 flex justify-center opacity-90"><x-lucide-layout-dashboard class="w-[15px] h-[15px]" /></span> Hub
                 </a>
             </div>
 
@@ -43,7 +43,9 @@
                 <div class="text-[9px] font-bold tracking-[0.18em] uppercase text-white/25 px-3 mb-1 max-[820px]:hidden">Installed Tools</div>
                 @foreach ($tools as $tool)
                     <a href="{{ $tool->url() }}" wire:navigate class="nav-item {{ $tool->isCurrent() ? 'active' : '' }}">
-                        <span class="w-4 text-center opacity-90">{{ $tool->icon }}</span> {{ $tool->name }}
+                        <span class="w-4 flex justify-center opacity-90">
+                            <x-dynamic-component :component="$tool->iconComponent()" class="w-[15px] h-[15px]" />
+                        </span> {{ $tool->name }}
                     </a>
 
                     {{-- A tool's own pages, revealed only while that tool is open. --}}
@@ -53,7 +55,9 @@
                             @foreach ($tool->navItems as $item)
                                 <a href="{{ $item->url() }}" wire:navigate
                                    class="nav-item py-1.5 text-[12px] {{ $item->isCurrent() ? 'text-white bg-white/5' : '' }}">
-                                    <span class="w-3.5 text-center text-[11px] opacity-80">{{ $item->icon }}</span> {{ $item->label }}
+                                    <span class="w-3.5 flex justify-center opacity-80">
+                                        <x-dynamic-component :component="$item->iconComponent()" class="w-[13px] h-[13px]" />
+                                    </span> {{ $item->label }}
                                 </a>
                             @endforeach
                         </div>
@@ -65,7 +69,7 @@
             <div class="flex flex-col gap-1 max-[820px]:flex-row">
                 <div class="text-[9px] font-bold tracking-[0.18em] uppercase text-white/25 px-3 mb-1 max-[820px]:hidden">System</div>
                 <a href="{{ route('settings') }}" wire:navigate class="nav-item {{ request()->routeIs('settings') ? 'active' : '' }}">
-                    <span class="w-4 text-center opacity-90">⚙</span> Settings
+                    <span class="w-4 flex justify-center opacity-90"><x-lucide-settings class="w-[15px] h-[15px]" /></span> Settings
                 </a>
             </div>
 

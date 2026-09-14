@@ -28,9 +28,9 @@
 
                 <div class="relative">
                     <div class="flex items-start justify-between mb-4">
-                        <div class="w-[42px] h-[42px] rounded-xl flex items-center justify-center text-[18px] shrink-0
+                        <div class="w-[42px] h-[42px] rounded-xl flex items-center justify-center shrink-0
                                     bg-[var(--accent-bg)] text-[var(--accent)]">
-                            {{ $tool->icon }}
+                            <x-dynamic-component :component="$tool->iconComponent()" class="w-5 h-5" />
                         </div>
 
                         @if ($tool->status === 'beta')

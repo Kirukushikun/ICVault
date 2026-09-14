@@ -34,7 +34,7 @@ final readonly class Tool
             key: $key,
             name: $config['name'],
             tagline: $config['tagline'] ?? '',
-            icon: $config['icon'] ?? '◆',
+            icon: $config['icon'] ?? 'square',
             accent: $config['accent'] ?? '#C3073F',
             route: $config['route'],
             routePattern: $config['route_pattern'] ?? $key.'.*',
@@ -69,6 +69,12 @@ final readonly class Tool
     public function url(): string
     {
         return route($this->route);
+    }
+
+    /** Blade component name for this tool's icon, e.g. "lucide-flask-conical". */
+    public function iconComponent(): string
+    {
+        return 'lucide-'.$this->icon;
     }
 
     public function isCurrent(): bool

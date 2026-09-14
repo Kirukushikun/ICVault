@@ -71,7 +71,9 @@
             @foreach ($toolsWithSettings as $tool)
                 <a href="{{ $tool->settingsUrl() }}" wire:navigate
                    class="flex items-center gap-4 py-3.5 border-b border-white/5 last:border-b-0 no-underline text-white group">
-                    <div class="w-7 text-center text-base opacity-75" style="color: {{ $tool->accent }}">{{ $tool->icon }}</div>
+                    <div class="w-7 flex justify-center opacity-75" style="color: {{ $tool->accent }}">
+                        <x-dynamic-component :component="$tool->iconComponent()" class="w-[18px] h-[18px]" />
+                    </div>
                     <div class="flex-1">
                         <div class="text-[13.5px] font-medium">{{ $tool->name }}</div>
                         <div class="text-[11px] text-text-muted">{{ $tool->tagline }}</div>

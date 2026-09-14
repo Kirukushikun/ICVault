@@ -21,13 +21,19 @@ final readonly class NavItem
         return new self(
             label: $config['label'],
             route: $config['route'],
-            icon: $config['icon'] ?? '·',
+            icon: $config['icon'] ?? 'dot',
         );
     }
 
     public function url(): string
     {
         return route($this->route);
+    }
+
+    /** Blade component name for this item's icon, e.g. "lucide-gauge". */
+    public function iconComponent(): string
+    {
+        return 'lucide-'.$this->icon;
     }
 
     public function isCurrent(): bool
