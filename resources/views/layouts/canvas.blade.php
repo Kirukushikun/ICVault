@@ -16,6 +16,8 @@
 
         <link rel="icon" href="{{ asset('images/ic-icon.ico') }}" sizes="any">
 
+        @include('partials.pwa-head')
+
         <title>{{ $title ?? 'ICVault' }}</title>
 
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=League+Gothic&family=League+Spartan:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />

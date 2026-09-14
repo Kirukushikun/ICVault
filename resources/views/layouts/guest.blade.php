@@ -6,6 +6,8 @@
 
         <link rel="icon" href="{{ asset('images/ic-icon.ico') }}" sizes="any">
 
+        @include('partials.pwa-head')
+
         <title>{{ $title ?? 'ICVault' }}</title>
 
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=League+Spartan:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -18,6 +20,7 @@
         {{ $slot }}
 
         <x-toast />
+        <x-install-prompt />
 
         @livewireScripts
     </body>

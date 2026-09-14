@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#C3073F">
+<title>ICVault — Offline</title>
+<link rel="icon" href="/images/ic-icon.ico" sizes="any">
+<!--
+    Served by the service worker when a navigation fails. Deliberately a flat
+    file in public/ rather than a route: it must render with no session, no
+    CSRF token and no database, which is exactly what a Laravel route cannot
+    promise. Styles are inline because the stylesheet may not be cached yet,
+    and the typeface falls back to system fonts because the font CDN is the
+    first thing to go when the network does.
+-->
+<style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+        min-height:100vh;display:grid;place-items:center;padding:24px;
+        background-color:#1A1A1D;
+        background-image:
+            radial-gradient(ellipse at 15% 20%, rgba(195,7,63,.09) 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 80%, rgba(195,7,63,.05) 0%, transparent 55%);
+        color:#fff;
+        font-family:'Roboto',ui-sans-serif,system-ui,-apple-system,sans-serif;
+        line-height:1.5;
+    }
+    .card{
+        max-width:420px;width:100%;text-align:center;padding:38px 32px;
+        background:#222226;border:1px solid rgba(255,255,255,.08);border-radius:16px;
+        box-shadow:0 2px 4px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+    }
+    img{width:56px;height:56px;object-fit:contain;margin-bottom:20px}
+    .eyebrow{
+        font-size:10px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;
+        color:#C3073F;margin-bottom:10px;
+    }
+    h1{
+        font-family:'League Spartan',ui-sans-serif,system-ui,sans-serif;
+        font-size:26px;font-weight:700;letter-spacing:.02em;margin-bottom:12px;
+    }
+    p{font-size:13px;color:rgba(255,255,255,.45);font-weight:300}
+    button{
+        margin-top:24px;padding:11px 26px;border:0;border-radius:10px;cursor:pointer;
+        font:inherit;font-size:12px;font-weight:600;letter-spacing:.06em;
+        text-transform:uppercase;color:#fff;
+        background:linear-gradient(90deg,#6F2232,#C3073F);
+        transition:transform .18s ease;
+    }
+    button:hover{transform:translateY(-2px)}
+</style>
+</head>
+<body>
+    <div class="card">
+        <img src="/images/ic-logo.png" alt="">
+        <div class="eyebrow">No Connection</div>
+        <h1>You're offline</h1>
+        <p>ICVault keeps its own pages on the server, so this one needs a connection. Anything already open should still work.</p>
+        <button type="button" onclick="location.reload()">Try again</button>
+    </div>
+
+    <script>
+        // Reloading the moment the connection returns saves the reader from
+        // poking at the button to find out whether it is back yet.
+        window.addEventListener('online', () => location.reload());
+    </script>
+</body>
+</html>
