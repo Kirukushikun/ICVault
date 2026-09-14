@@ -54,7 +54,7 @@ return [
         'accent' => '#2E9CCA',
         'route' => 'visualizer.index',
         'route_pattern' => 'visualizer.*',
-        'status' => 'beta',
+        'status' => 'active',
         'enabled' => true,
         'summary' => VisualizerTool::class,
     ],

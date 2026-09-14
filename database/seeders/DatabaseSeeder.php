@@ -26,5 +26,6 @@ class DatabaseSeeder extends Seeder
         $this->call(CategorySeeder::class);
         $this->call(QuestionSeeder::class);
         $this->call(TipSeeder::class);
+        $this->call(LabIdpTrackerSeeder::class);
     }
 }

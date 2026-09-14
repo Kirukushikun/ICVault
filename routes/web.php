@@ -3,6 +3,7 @@
 use App\Platform\Livewire\Auth\LoginPage;
 use App\Platform\Livewire\Hub\HubPage;
 use App\Platform\Livewire\Settings\SettingsPage;
+use App\Tools\Lab\Http\Controllers\IdpTrackerController;
 use App\Tools\Lab\Livewire\ProjectIndex;
 use App\Tools\Lab\Livewire\ProjectViewer;
 use App\Tools\Quiz\Livewire\ImportPage;
@@ -61,6 +62,23 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('lab')->name('lab.')->group(function () {
         Route::get('/', ProjectIndex::class)->name('index');
+
+        // IDP Tracker's JSON backend — declared before the {project}
+        // wildcard below so an extra path segment (e.g. /idp-tracker/state)
+        // never has a chance to be swallowed by it.
+        Route::prefix('idp-tracker')->name('idp.')->group(function () {
+            Route::get('/state', [IdpTrackerController::class, 'state'])->name('state');
+            Route::patch('/activities/{activity}', [IdpTrackerController::class, 'updateActivity'])->name('activities.update');
+            Route::post('/activities/{activity}/sources', [IdpTrackerController::class, 'storeSource'])->name('sources.store');
+            Route::delete('/sources/{source}', [IdpTrackerController::class, 'destroySource'])->name('sources.destroy');
+            Route::post('/activities/{activity}/attachments', [IdpTrackerController::class, 'storeAttachment'])->name('attachments.store');
+            Route::get('/attachments/{attachment}', [IdpTrackerController::class, 'showAttachment'])->name('attachments.show');
+            Route::delete('/attachments/{attachment}', [IdpTrackerController::class, 'destroyAttachment'])->name('attachments.destroy');
+            Route::post('/reviews', [IdpTrackerController::class, 'storeReview'])->name('reviews.store');
+            Route::delete('/reviews/{review}', [IdpTrackerController::class, 'destroyReview'])->name('reviews.destroy');
+            Route::post('/reset', [IdpTrackerController::class, 'reset'])->name('reset');
+        });
+
         Route::get('/{project}', ProjectViewer::class)->name('project');
     });
 });

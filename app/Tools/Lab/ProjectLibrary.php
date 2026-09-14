@@ -21,13 +21,13 @@ final class ProjectLibrary
 {
     /** @var array<string, array<string, string|int>> */
     private const PROJECTS = [
-        'scratch-notes' => [
-            'title' => 'Scratch Notes',
-            'subtitle' => 'A minimal note board',
+        'idp-tracker' => [
+            'title' => 'IDP Tracker',
+            'subtitle' => 'Individual Development Plan',
             'eyebrow' => 'Lab 01',
-            'blurb' => 'Quick capture with no schema yet — every note lives in this browser until it either gets deleted or earns a real table.',
-            'accent' => '#7C5CFC',
-            'storage' => 'localStorage',
+            'blurb' => 'Dashboard, 70-20-10 learning mix, progress-over-time chart, and a quarterly review log against a Dec 2026 deadline — attachments live on the server, not in the browser.',
+            'accent' => '#C3073F',
+            'storage' => 'database',
         ],
     ];
 
