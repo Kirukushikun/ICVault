@@ -1,12 +1,15 @@
 {{--
-    Layout for Concept Visualizer guides. Guides bring their own typography and
-    palette, so the page stays out of their way below the bar — but it keeps a
-    platform header so a guide reads as part of ICVault rather than a loose
-    document someone linked to.
+    Shared full-bleed layout for Concept Vault guides and Lab Vault projects.
+    Both bring their own typography and palette, so the page stays out of
+    their way below the bar — but it keeps a platform header so an item reads
+    as part of ICVault rather than a loose document someone linked to.
 
-    Links here are deliberately plain (no wire:navigate): a guide ships its own
-    stylesheet and inline script, and an SPA-style body swap would not re-run
-    that script, leaving the guide's interactive parts blank.
+    The caller passes crumbLabel/crumbRoute/backLabel (which tool this is)
+    and, optionally, itemTitle/itemAccent (which item within it).
+
+    Links here are deliberately plain (no wire:navigate): an item ships its
+    own stylesheet and inline script, and an SPA-style body swap would not
+    re-run that script, leaving its interactive parts blank.
 --}}
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -36,23 +39,23 @@
 
             <span class="text-white/20 text-[11px] shrink-0">/</span>
 
-            <a href="{{ route('visualizer.index') }}"
+            <a href="{{ route($crumbRoute) }}"
                class="text-[12px] text-text-muted hover:text-white no-underline transition-colors shrink-0">
-                Concept Visualizer
+                {{ $crumbLabel }}
             </a>
 
-            @isset($guideTitle)
+            @isset($itemTitle)
                 <span class="text-white/20 text-[11px] shrink-0 max-[560px]:hidden">/</span>
                 <span class="text-[12px] font-medium truncate max-[560px]:hidden"
-                      style="color: {{ $guideAccent ?? '#ffffff' }}">{{ $guideTitle }}</span>
+                      style="color: {{ $itemAccent ?? '#ffffff' }}">{{ $itemTitle }}</span>
             @endisset
 
-            <a href="{{ route('visualizer.index') }}"
+            <a href="{{ route($crumbRoute) }}"
                class="ml-auto shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-lg
                       border border-border bg-white/3 no-underline
                       text-[11px] font-semibold tracking-[0.08em] uppercase text-text-muted
                       hover:text-white hover:border-white/25 transition-colors">
-                ← Guides
+                ← {{ $backLabel }}
             </a>
         </header>
 

@@ -100,13 +100,14 @@ class ToolRegistryTest extends TestCase
         $this->assertNull($this->registry([])->find('nope'));
     }
 
-    public function test_the_shipped_config_registers_the_quiz_and_visualizer_tools(): void
+    public function test_the_shipped_config_registers_the_quiz_visualizer_and_lab_tools(): void
     {
         $registry = app(ToolRegistry::class);
 
-        $this->assertSame(['quiz', 'visualizer'], $registry->enabled()->keys()->all());
+        $this->assertSame(['quiz', 'visualizer', 'lab'], $registry->enabled()->keys()->all());
         $this->assertSame('quiz.dashboard', $registry->find('quiz')->route);
         $this->assertSame('visualizer.index', $registry->find('visualizer')->route);
+        $this->assertSame('lab.index', $registry->find('lab')->route);
     }
 
     public function test_every_registered_tool_points_at_a_real_route(): void

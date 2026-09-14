@@ -1,5 +1,6 @@
 <?php
 
+use App\Tools\Lab\LabTool;
 use App\Tools\Quiz\QuizTool;
 use App\Tools\Visualizer\VisualizerTool;
 
@@ -56,6 +57,18 @@ return [
         'status' => 'beta',
         'enabled' => true,
         'summary' => VisualizerTool::class,
+    ],
+
+    'lab' => [
+        'name' => 'Lab Vault',
+        'tagline' => 'Loose mini-systems parked here — static pages and localStorage prototypes, some destined for a real backing store.',
+        'icon' => '⚗',
+        'accent' => '#7C5CFC',
+        'route' => 'lab.index',
+        'route_pattern' => 'lab.*',
+        'status' => 'beta',
+        'enabled' => true,
+        'summary' => LabTool::class,
     ],
 
 ];

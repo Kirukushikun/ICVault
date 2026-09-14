@@ -3,6 +3,8 @@
 use App\Platform\Livewire\Auth\LoginPage;
 use App\Platform\Livewire\Hub\HubPage;
 use App\Platform\Livewire\Settings\SettingsPage;
+use App\Tools\Lab\Livewire\ProjectIndex;
+use App\Tools\Lab\Livewire\ProjectViewer;
 use App\Tools\Quiz\Livewire\ImportPage;
 use App\Tools\Quiz\Livewire\QuestionBrowser;
 use App\Tools\Quiz\Livewire\QuizDashboard;
@@ -55,5 +57,10 @@ Route::middleware('auth')->group(function () {
     Route::prefix('visualizer')->name('visualizer.')->group(function () {
         Route::get('/', GuideIndex::class)->name('index');
         Route::get('/{guide}', GuideViewer::class)->name('guide');
+    });
+
+    Route::prefix('lab')->name('lab.')->group(function () {
+        Route::get('/', ProjectIndex::class)->name('index');
+        Route::get('/{project}', ProjectViewer::class)->name('project');
     });
 });

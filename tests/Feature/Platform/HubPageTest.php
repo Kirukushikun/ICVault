@@ -27,7 +27,8 @@ class HubPageTest extends TestCase
     {
         Livewire::test(HubPage::class)
             ->assertSee('Quiz Vault')
-            ->assertSee('Concept Vault');
+            ->assertSee('Concept Vault')
+            ->assertSee('Lab Vault');
     }
 
     public function test_it_shows_a_tools_own_summary_line(): void

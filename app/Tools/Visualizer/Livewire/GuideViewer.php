@@ -29,8 +29,11 @@ class GuideViewer extends Component
         return view($guides->view($this->slug), ['guide' => $guide])
             ->layoutData([
                 'title' => 'ICVault — '.$guide['title'],
-                'guideTitle' => $guide['title'],
-                'guideAccent' => $guide['accent'],
+                'crumbLabel' => 'Concept Vault',
+                'crumbRoute' => 'visualizer.index',
+                'backLabel' => 'Guides',
+                'itemTitle' => $guide['title'],
+                'itemAccent' => $guide['accent'],
             ]);
     }
 }
